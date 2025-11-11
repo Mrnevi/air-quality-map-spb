@@ -287,7 +287,7 @@ function getAirQualityInfo(aqius) {
             text: "Отличное",
             status: "Хорошо",
             description: "Качество воздуха удовлетворительное, загрязнение воздуха представляет незначительный риск или вообще не представляет риска.",
-            recommendation: "Идеальные условия для outdoor activities.",
+            recommendation: "Идеальные условия для мероприятий на свежем воздухе.",
             color: '#00E400',
             strokeColor: '#009900'
         };
@@ -296,7 +296,7 @@ function getAirQualityInfo(aqius) {
             text: "Удовлетворительное", 
             status: "Умеренно",
             description: "Качество воздуха приемлемое; однако некоторые загрязнители могут представлять умеренную проблему для здоровья.",
-            recommendation: "Чувствительные группы должны сократить prolonged outdoor exertion.",
+            recommendation: "Чувствительные группы должны сократить длительные физические нагрузки на открытом воздухе.",
             color: '#FFFF00',
             strokeColor: '#FFAA00'
         };
@@ -305,7 +305,7 @@ function getAirQualityInfo(aqius) {
             text: "Нездоровое для чувствительных групп",
             status: "Внимание",
             description: "Члены чувствительных групп могут испытывать последствия для здоровья.",
-            recommendation: "Дети, пожилые и больные должны избегать prolonged outdoor exertion.",
+            recommendation: "Дети, пожилые и больные должны избегать длительных физических нагрузок на открытом воздухе.",
             color: '#FF7E00',
             strokeColor: '#FF5500'
         };
@@ -314,7 +314,7 @@ function getAirQualityInfo(aqius) {
             text: "Нездоровое",
             status: "Опасно", 
             description: "Каждый может начать испытывать последствия для здоровья.",
-            recommendation: "Избегайте outdoor activities, используйте маски.",
+            recommendation: "Избегайте мероприятий на свежем воздухе, используйте маски.",
             color: '#FF0000',
             strokeColor: '#CC0000'
         };
