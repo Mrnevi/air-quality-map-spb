@@ -20,24 +20,47 @@
                     Обновить
                 </button>
                 <div class="last-update">
-                    <span id="last-update-time">-</span>
+                    <span id="last-update-time">Загрузка...</span>
                 </div>
             </div>
         </div>
     </header>
 
     <main>
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="map-controls">
-                <button id="zoom-in" class="map-btn">+</button>
-                <button id="zoom-out" class="map-btn">−</button>
-                <button id="locate-btn" class="map-btn">📍</button>
+        <div class="content-left">
+            <!-- Блок статистики -->
+            <div class="stats-panel">
+                <h3>📈 Статистика по городу</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="avg-aqi">-</div>
+                        <div class="stat-label">Средний AQI</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="best-district">-</div>
+                        <div class="stat-label">Лучший район</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="worst-district">-</div>
+                        <div class="stat-label">Худший район</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок карты -->
+            <div class="map-container">
+                <div id="map"></div>
+                <div class="map-controls">
+                    <button id="zoom-in" class="map-btn">+</button>
+                    <button id="zoom-out" class="map-btn">−</button>
+                    <button id="locate-btn" class="map-btn">📍</button>
+                </div>
             </div>
         </div>
 
+        <!-- Боковая панель с детальной информацией -->
         <div class="sidebar">
-            <div id="info" class="info-panel hidden">
+            <div id="info" class="info-panel">
                 <div class="panel-header">
                     <h3>📊 Детальная информация</h3>
                 </div>
@@ -68,24 +91,6 @@
                             <div class="pollutant">SO₂</div>
                             <div class="pollutant">CO</div>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-panel">
-                <h4>📈 Статистика по городу</h4>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="avg-aqi">-</div>
-                        <div class="stat-label">Средний AQI</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="best-district">-</div>
-                        <div class="stat-label">Лучший район</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="worst-district">-</div>
-                        <div class="stat-label">Худший район</div>
                     </div>
                 </div>
             </div>

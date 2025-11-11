@@ -103,6 +103,9 @@ let currentData = [];
 ymaps.ready(init);
 
 async function init() {
+    // Показываем загрузку
+    showLoading(true);
+    
     // Создаем карту
     myMap = new ymaps.Map("map", {
         center: SPB_CENTER,
@@ -119,8 +122,8 @@ async function init() {
     // Добавляем легенду
     addLegend(myMap);
     
-    // Обновляем статистику
-    updateStats();
+    // Скрываем загрузку
+    showLoading(false);
 }
 
 // Добавление кастомных элементов управления
@@ -146,11 +149,6 @@ function addMapControls() {
     
     // Кнопка обновления
     document.getElementById('refresh-btn').addEventListener('click', refreshData);
-    
-    // Кнопка закрытия информации
-    document.getElementById('close-info').addEventListener('click', () => {
-        document.getElementById('info').classList.add('hidden');
-    });
 }
 
 // Основная функция обновления данных
@@ -169,12 +167,13 @@ async function refreshData() {
         // Обновляем время последнего обновления
         updateLastUpdateTime();
         
-        // Обновляем статистику
-        updateStats();
+        // Обновляем статистику и показываем лучший район
+        updateStatsAndShowBestDistrict();
         
     } catch (error) {
         console.error('❌ Ошибка обновления:', error);
         createDemoData();
+        updateStatsAndShowBestDistrict();
     }
     
     showLoading(false);
@@ -361,28 +360,41 @@ function updateInfoPanel(name, quality, description, index, status, recommendati
     const badgeDot = document.querySelector('.badge-dot');
     const qualityBadge = document.getElementById('quality-badge');
     badgeDot.style.backgroundColor = color;
-    qualityBadge.style.borderLeft = `3px solid ${color}`;
+    qualityBadge.style.borderLeftColor = color;
     
-    // Показываем панель
-    const infoBlock = document.getElementById('info');
-    infoBlock.classList.remove('hidden');
+    // Панель всегда видима, не нужно показывать/скрывать
 }
 
-// Обновление статистики
-function updateStats() {
+// Обновление статистики и показ лучшего района
+function updateStatsAndShowBestDistrict() {
     if (currentData.length === 0) return;
     
     // Средний AQI
     const avgAQI = Math.round(currentData.reduce((sum, item) => sum + item.aqi, 0) / currentData.length);
     document.getElementById('avg-aqi').textContent = avgAQI;
     
-    // Лучший район
+    // Лучший район (самый низкий AQI)
     const bestDistrict = currentData.reduce((best, current) => current.aqi < best.aqi ? current : best);
     document.getElementById('best-district').textContent = bestDistrict.district.split(' ')[0];
     
-    // Худший район
+    // Худший район (самый высокий AQI)
     const worstDistrict = currentData.reduce((worst, current) => current.aqi > worst.aqi ? current : worst);
     document.getElementById('worst-district').textContent = worstDistrict.district.split(' ')[0];
+    
+    // Автоматически показываем информацию о лучшем районе
+    const bestDistrictFull = districts.find(d => d.name === bestDistrict.district);
+    if (bestDistrictFull) {
+        const qualityData = getAirQualityInfo(bestDistrict.aqi);
+        updateInfoPanel(
+            bestDistrictFull.name,
+            qualityData.text,
+            qualityData.description,
+            bestDistrict.aqi,
+            qualityData.status,
+            qualityData.recommendation,
+            qualityData.color
+        );
+    }
 }
 
 // Обновление времени последнего обновления
@@ -471,8 +483,3 @@ function showLoading(show) {
 
 // Авто-обновление каждые 5 минут
 setInterval(refreshData, 5 * 60 * 1000);
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    updateLastUpdateTime();
-});
