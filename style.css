@@ -348,7 +348,6 @@ main {
     }
     
     .sidebar {
-        order: -1;
         position: static;
     }
     
@@ -384,6 +383,14 @@ main {
     
     .stat-value {
         font-size: 1.5rem;
+    }
+
+    .sidebar {
+        order: 2; /* Гарантирует, что панель будет после карты */
+    }
+    
+    .content-left {
+        order: 1; /* Гарантирует, что контент слева будет перед панелью */
     }
 }
 
