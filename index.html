@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 EcoScan SPb - Карта качества воздуха</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div class="header-main">
+                <h1>🌿 EcoScan SPb</h1>
+                <p>Интерактивная карта мониторинга качества воздуха</p>
+            </div>
+            <div class="header-controls">
+                <button id="refresh-btn" class="btn-primary">
+                    <span class="btn-icon">🔄</span>
+                    Обновить
+                </button>
+                <div class="last-update">
+                    <span id="last-update-time">-</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="map-controls">
+                <button id="zoom-in" class="map-btn">+</button>
+                <button id="zoom-out" class="map-btn">−</button>
+                <button id="locate-btn" class="map-btn">📍</button>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div id="info" class="info-panel hidden">
+                <div class="panel-header">
+                    <h3>📊 Детальная информация</h3>
+                    <button id="close-info" class="close-btn">×</button>
+                </div>
+                <div class="info-content">
+                    <div class="info-item">
+                        <strong>Район</strong>
+                        <span id="district-name">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Индекс AQI</strong>
+                        <span id="air-quality-value">-</span>
+                    </div>
+                    <div class="quality-badge" id="quality-badge">
+                        <span class="badge-dot"></span>
+                        <span class="badge-text" id="quality-status">-</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Рекомендации</strong>
+                        <span id="quality-description">-</span>
+                    </div>
+                    <div class="pollutants">
+                        <strong>Основные загрязнители</strong>
+                        <div class="pollutants-list">
+                            <div class="pollutant">PM2.5</div>
+                            <div class="pollutant">PM10</div>
+                            <div class="pollutant">NO₂</div>
+                            <div class="pollutant">O₃</div>
+                            <div class="pollutant">SO₂</div>
+                            <div class="pollutant">CO</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-panel">
+                <h4>📈 Статистика по городу</h4>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="avg-aqi">-</div>
+                        <div class="stat-label">Средний AQI</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="best-district">-</div>
+                        <div class="stat-label">Лучший район</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="worst-district">-</div>
+                        <div class="stat-label">Худший район</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Яндекс Карты -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ВАШ_API_КЛЮЧ_КАРТ&lang=ru_RU" type="text/javascript"></script>
+    <script src="script.js"></script>
+</body>
+</html>
