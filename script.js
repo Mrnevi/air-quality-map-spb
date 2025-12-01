@@ -365,6 +365,21 @@ function updateInfoPanel(name, quality, description, index, status, recommendati
     // Панель всегда видима, не нужно показывать/скрывать
 }
 
+// Функция для сокращения названия района
+function shortenDistrictName(fullName) {
+    if (!fullName) return '';
+    
+    // Убираем слово "район" и лишние пробелы
+    const shortName = fullName.replace(' район', '');
+    
+    // Если название все еще длинное, берем первое слово
+    if (shortName.length > 12) {
+        return shortName.split(' ')[0];
+    }
+    
+    return shortName;
+}
+
 // Обновление статистики и показ лучшего района
 function updateStatsAndShowBestDistrict() {
     if (currentData.length === 0) return;
@@ -373,13 +388,24 @@ function updateStatsAndShowBestDistrict() {
     const avgAQI = Math.round(currentData.reduce((sum, item) => sum + item.aqi, 0) / currentData.length);
     document.getElementById('avg-aqi').textContent = avgAQI;
     
+    // Сортируем данные по AQI
+    const sortedData = [...currentData].sort((a, b) => a.aqi - b.aqi);
+    
     // Лучший район (самый низкий AQI)
-    const bestDistrict = currentData.reduce((best, current) => current.aqi < best.aqi ? current : best);
-    document.getElementById('best-district').textContent = bestDistrict.district.split(' ')[0];
+    const bestDistrict = sortedData[0];
+    document.getElementById('best-district').textContent = shortenDistrictName(bestDistrict.district);
     
     // Худший район (самый высокий AQI)
-    const worstDistrict = currentData.reduce((worst, current) => current.aqi > worst.aqi ? current : worst);
-    document.getElementById('worst-district').textContent = worstDistrict.district.split(' ')[0];
+    const worstDistrict = sortedData[sortedData.length - 1];
+    
+    // Проверяем, не совпадают ли лучший и худший районы
+    if (bestDistrict.district === worstDistrict.district && sortedData.length > 1) {
+        // Если совпадают, берем второй с конца (предпоследний)
+        const secondWorst = sortedData[sortedData.length - 2];
+        document.getElementById('worst-district').textContent = shortenDistrictName(secondWorst.district);
+    } else {
+        document.getElementById('worst-district').textContent = shortenDistrictName(worstDistrict.district);
+    }
     
     // Автоматически показываем информацию о лучшем районе
     const bestDistrictFull = districts.find(d => d.name === bestDistrict.district);
