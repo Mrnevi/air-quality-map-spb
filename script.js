@@ -97,6 +97,7 @@ const districts = [
 
 let myMap;
 let currentData = [];
+let isFirstLoad = true;  // чтобы не показывать второй loading при старте
 
 // Инициализация карты
 ymaps.ready(init);
@@ -109,11 +110,12 @@ async function init() {
   });
 
   addMapControls();
-  await refreshData();
+  await refreshData();           // здесь рисуются все полигоны
   addLegend(myMap);
   updateStats();
 }
 
+// Управление кнопками на карте
 function addMapControls() {
   document.getElementById('zoom-in').addEventListener('click', () => myMap.setZoom(myMap.getZoom() + 1));
   document.getElementById('zoom-out').addEventListener('click', () => myMap.setZoom(myMap.getZoom() - 1));
@@ -121,6 +123,8 @@ function addMapControls() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(pos => {
         myMap.setCenter([pos.coords.latitude, pos.coords.longitude], 15);
+      }, () => {
+        alert('Не удалось определить местоположение');
       });
     }
   });
@@ -130,95 +134,102 @@ function addMapControls() {
   });
 }
 
-// ОСНОВНАЯ ФУНКЦИЯ: ТОЛЬКО ДЕМО, БЕЗ API
+// Основная функция обновления данных
 async function refreshData() {
-  showLoading(true);
+  if (!isFirstLoad) {
+    showLoading(true);
+  }
+
   myMap.geoObjects.removeAll();
   currentData = [];
 
-  createDemoData(); // ← мгновенно
+  createDemoData();               // здесь создаются полигоны и данные
 
   updateLastUpdateTime();
   updateStats();
-  showLoading(false);
+
+  if (!isFirstLoad) {
+    showLoading(false);
+  }
+
+  isFirstLoad = false;
 }
 
-// УЛУЧШЕННЫЕ ДЕМО-ДАННЫЕ С РАЗНООБРАЗНЫМИ ЦВЕТАМИ
+// Генерация демо-данных + отрисовка полигонов
 function createDemoData() {
-  console.log('🎮 Используются улучшенные демо-данные');
-  currentData = [];
+  console.log('🎮 Используются демо-данные');
 
   const ranges = [
     { min: 0, max: 50 },      // Отличное
     { min: 51, max: 100 },    // Удовлетворительное
     { min: 101, max: 150 },   // Нездоровое для чувствительных
     { min: 151, max: 200 },   // Нездоровое
-    { min: 201, max: 300 }    // Очень нездоровое
+    { min: 201, max: 300 }    // Очень нездоровое / опасное
   ];
 
   districts.forEach((district, index) => {
-    const range = ranges[index % ranges.length]; // чередуем категории
+    // случайный AQI в пределах диапазона
+    const range = ranges[index % ranges.length];
     const aqius = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
     currentData.push({ district: district.name, aqi: aqius });
+
+    // Отрисовка полигона района
     createDistrictPolygon(district, aqius);
   });
 }
 
+// Создание полигона района на карте
 function createDistrictPolygon(district, aqius) {
-  const qualityData = getAirQualityInfo(aqius);
-  const polygon = new ymaps.Polygon([district.coords], {
-    hintContent: `${district.name} - AQI: ${aqius}`
+  const quality = getAirQualityInfo(aqius);
+
+  const polygon = new ymaps.Polygon([
+    district.coords
+  ], {
+    hintContent: `${district.name} — AQI ${aqius}`
   }, {
-    fillColor: qualityData.color,
-    strokeColor: qualityData.strokeColor,
+    fillColor: quality.color + '88',     // полупрозрачный заливка
+    strokeColor: quality.strokeColor,
     strokeWidth: 2,
-    opacity: 0.7,
-    fillOpacity: 0.6
+    opacity: 0.85,
+    fillOpacity: 0.55
   });
 
+  // Содержимое балуна
   polygon.properties.set({
-    balloonContentHeader: `<strong>${district.name}</strong>`,
+    balloonContentHeader: `<b>${district.name}</b>`,
     balloonContentBody: `
-      <div class="air-quality-balloon">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
-          <div style="width: 12px; height: 12px; border-radius: 50%; background: ${qualityData.color}"></div>
-          <strong style="color: ${qualityData.color}">${qualityData.text}</strong>
-        </div>
-        <p><strong>Индекс AQI:</strong> ${aqius}</p>
-        <p><strong>Статус:</strong> ${qualityData.status}</p>
-        <p><strong>Рекомендации:</strong> ${qualityData.recommendation}</p>
-        <p style="margin-top: 12px; font-size: 12px; color: #666;">
-          <em>Обновлено: ${new Date().toLocaleTimeString()}</em>
-        </p>
-      </div>
+      <b>${quality.text} (${quality.status})</b><br>
+      AQI: <b>${aqius}</b><br><br>
+      ${quality.recommendation}<br><br>
+      <small>Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
     `
   });
 
-  myMap.geoObjects.add(polygon);
-
-  polygon.events.add('click', function (e) {
+  // При клике по полигону — открываем боковую панель
+  polygon.events.add('click', function () {
     updateInfoPanel(
       district.name,
-      qualityData.text,
-      qualityData.description,
+      quality.text,
+      quality.description,
       aqius,
-      qualityData.status,
-      qualityData.recommendation,
-      qualityData.color
+      quality.status,
+      quality.recommendation,
+      quality.color
     );
-    polygon.balloon.open(e.get('coords'));
   });
+
+  myMap.geoObjects.add(polygon);
 }
 
-// КЛАССИФИКАЦИЯ AQI — С ИСПРАВЛЕНИЕМ ОПЕЧАТКИ
+// Определение качества воздуха по AQI
 function getAirQualityInfo(aqius) {
   if (aqius <= 50) {
     return {
       text: "Отличное",
-      status: "Хорошо",
-      description: "Качество воздуха удовлетворительное.",
-      recommendation: "Идеальные условия для outdoor activities.",
+      status: "Здоровое",
+      description: "Качество воздуха идеальное.",
+      recommendation: "Можно спокойно проводить время на улице.",
       color: '#00E400',
       strokeColor: '#009900'
     };
@@ -227,7 +238,7 @@ function getAirQualityInfo(aqius) {
       text: "Удовлетворительное",
       status: "Умеренно",
       description: "Качество воздуха приемлемое.",
-      recommendation: "Чувствительные группы должны сократить prolonged outdoor exertion.",
+      recommendation: "Чувствительные группы могут заниматься обычной активностью.",
       color: '#FFFF00',
       strokeColor: '#FFAA00'
     };
@@ -236,7 +247,7 @@ function getAirQualityInfo(aqius) {
       text: "Нездоровое для чувствительных групп",
       status: "Внимание",
       description: "Члены чувствительных групп могут испытывать последствия.",
-      recommendation: "Дети и пожилые — избегайте активности на улице.",
+      recommendation: "Сократите длительные нагрузки на улице.",
       color: '#FF7E00',
       strokeColor: '#FF5500'
     };
@@ -244,16 +255,16 @@ function getAirQualityInfo(aqius) {
     return {
       text: "Нездоровое",
       status: "Опасно",
-      description: "Каждый может начать испытывать последствия.",
-      recommendation: "Избегайте outdoor activities, используйте маски.",
+      description: "Все могут начать испытывать последствия.",
+      recommendation: "Ограничьте пребывание на улице, особенно дети и пожилые.",
       color: '#FF0000',
       strokeColor: '#CC0000'
     };
   } else {
     return {
-      text: "Очень нездоровое", // ✅ ИСПРАВЛЕНО!
+      text: "Очень нездоровое",
       status: "Критично",
-      description: "Предупреждения о вреде для здоровья.",
+      description: "Серьёзный риск для здоровья всех групп.",
       recommendation: "Оставайтесь в помещении, используйте очистители воздуха.",
       color: '#8F3F97',
       strokeColor: '#660066'
@@ -261,63 +272,68 @@ function getAirQualityInfo(aqius) {
   }
 }
 
+// Обновление боковой панели
 function updateInfoPanel(name, quality, description, index, status, recommendation, color) {
   document.getElementById('district-name').textContent = name;
   document.getElementById('air-quality-value').textContent = index;
-  document.getElementById('quality-status').textContent = `${quality} - ${status}`;
+  document.getElementById('quality-status').textContent = `${quality} — ${status}`;
   document.getElementById('quality-description').textContent = recommendation;
 
   const badgeDot = document.querySelector('.badge-dot');
   const qualityBadge = document.getElementById('quality-badge');
   badgeDot.style.backgroundColor = color;
-  qualityBadge.style.borderLeft = `3px solid ${color}`;
+  qualityBadge.style.borderLeft = `4px solid ${color}`;
 
   document.getElementById('info').classList.remove('hidden');
 }
 
+// Обновление статистики
 function updateStats() {
   if (!currentData.length) return;
   const avg = Math.round(currentData.reduce((s, i) => s + i.aqi, 0) / currentData.length);
   const best = currentData.reduce((a, b) => a.aqi < b.aqi ? a : b);
   const worst = currentData.reduce((a, b) => a.aqi > b.aqi ? a : b);
+
   document.getElementById('avg-aqi').textContent = avg;
   document.getElementById('best-district').textContent = best.district.split(' ')[0];
   document.getElementById('worst-district').textContent = worst.district.split(' ')[0];
 }
 
+// Время последнего обновления
 function updateLastUpdateTime() {
   const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   document.getElementById('last-update-time').textContent = `Обновлено: ${time}`;
 }
 
+// Добавление легенды на карту
 function addLegend(map) {
-  const Legend = function () { Legend.superclass.constructor.call(this); };
-  ymaps.util.augment(Legend, ymaps.Control, {
-    onAdd: function () {
-      const el = ymaps.util.createElement('div');
-      el.innerHTML = `
-        <div style="background:white;padding:16px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);font-family:'Inter',sans-serif;font-size:12px;max-width:200px;line-height:1.4;border:1px solid #e2e8f0;">
-          <h4 style="margin:0 0 12px 0;font-size:14px;font-weight:600;color:#1e293b;">Индекс качества воздуха (AQI)</h4>
-          <div style="display:flex;align-items:center;margin:6px 0;"><div style="width:12px;height:12px;background:#00E400;margin-right:8px;border-radius:2px;"></div><span>0–50: Отличное</span></div>
-          <div style="display:flex;align-items:center;margin:6px 0;"><div style="width:12px;height:12px;background:#FFFF00;margin-right:8px;border-radius:2px;"></div><span>51–100: Удовлетворительное</span></div>
-          <div style="display:flex;align-items:center;margin:6px 0;"><div style="width:12px;height:12px;background:#FF7E00;margin-right:8px;border-radius:2px;"></div><span>101–150: Нездоровое</span></div>
-          <div style="display:flex;align-items:center;margin:6px 0;"><div style="width:12px;height:12px;background:#FF0000;margin-right:8px;border-radius:2px;"></div><span>151–200: Опасно</span></div>
-          <div style="display:flex;align-items:center;margin:6px 0;"><div style="width:12px;height:12px;background:#8F3F97;margin-right:8px;border-radius:2px;"></div><span>201+: Критично</span></div>
-          <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;">Источник: Демо-данные</div>
-        </div>`;
-      return el;
-    }
-  });
+  const Legend = function () { ymaps.util.augment(Legend, ymaps.Control); };
+  Legend.prototype.onAdd = function () {
+    const el = ymaps.util.createElement('div');
+    el.innerHTML = `
+      <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15); font-family:'Inter',sans-serif; font-size:12px; max-width:220px; line-height:1.4; border:1px solid #e2e8f0;">
+        <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:600; color:#1e293b;">Индекс качества воздуха (AQI)</h4>
+        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#00E400; margin-right:8px; border-radius:2px;"></div><span>0–50: Отличное</span></div>
+        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FFFF00; margin-right:8px; border-radius:2px;"></div><span>51–100: Удовлетворительное</span></div>
+        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FF7E00; margin-right:8px; border-radius:2px;"></div><span>101–150: Нездоровое</span></div>
+        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FF0000; margin-right:8px; border-radius:2px;"></div><span>151–200: Опасно</span></div>
+        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#8F3F97; margin-right:8px; border-radius:2px;"></div><span>201+: Критично</span></div>
+        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b;">Источник: Демо-данные</div>
+      </div>`;
+    return el;
+  };
+
   map.controls.add(new Legend({ position: { top: 120, right: 20 } }));
 }
 
+// Показ/скрытие оверлея загрузки
 function showLoading(show) {
   let el = document.getElementById('loading');
   if (!el && show) {
     el = document.createElement('div');
     el.id = 'loading';
     el.innerHTML = `
-      <div class="loading-spinner"></div>
+      <div><img src="loading.gif" alt="Загрузка"></div>
       <div class="loading-text">Загружаем актуальные данные о воздухе...</div>
     `;
     document.body.appendChild(el);
@@ -327,6 +343,3 @@ function showLoading(show) {
 
 // Автообновление каждые 5 минут
 setInterval(refreshData, 5 * 60 * 1000);
-
-// Инициализация времени
-document.addEventListener('DOMContentLoaded', () => updateLastUpdateTime());

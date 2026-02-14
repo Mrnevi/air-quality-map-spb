@@ -6,8 +6,88 @@
   <title>🌿 EcoScan SPb - Карта качества воздуха</title>
   <link rel="stylesheet" href="style.css">
   <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+
+  <style>
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      z-index: 999999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: opacity 0.8s ease;
+      opacity: 1;
+    }
+
+    #splash-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .splash-content {
+      text-align: center;
+      padding: 2rem;
+      max-width: 420px;
+    }
+
+    .splash-content img {
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      margin-bottom: 1.6rem;
+      border-radius: 24px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.5);
+    }
+
+    .splash-content h2 {
+      font-size: 2.4rem;
+      margin: 0.2rem 0 0.7rem;
+      font-weight: 700;
+    }
+
+    .splash-content p {
+      font-size: 1.12rem;
+      opacity: 0.9;
+      margin: 0 0 2rem;
+    }
+
+    .progress-bar {
+      width: 260px;
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .progress {
+      width: 0;
+      height: 100%;
+      background: linear-gradient(to right, #60a5fa, #3b82f6);
+      animation: fill 7s linear forwards;
+    }
+
+    @keyframes fill {
+      to { width: 100%; }
+    }
+  </style>
 </head>
 <body>
+
+  <!-- Splash экран 7 секунд -->
+  <div id="splash-screen">
+    <div class="splash-content">
+      <img src="loading.gif" alt="Загрузка воздуха">
+      <h2>EcoScan SPb</h2>
+      <p>Собираем свежие данные о качестве воздуха Санкт-Петербурга…</p>
+      <div class="progress-bar">
+        <div class="progress"></div>
+      </div>
+    </div>
+  </div>
+
   <header>
     <div class="header-content">
       <div class="header-main">
@@ -100,6 +180,18 @@
 
   <!-- Яндекс Карты -->
   <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+
+  <script>
+    // Управление splash-экраном (7 секунд)
+    window.addEventListener('load', () => {
+      const splash = document.getElementById('splash-screen');
+      setTimeout(() => {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.remove(), 900);
+      }, 7000);
+    });
+  </script>
+
   <script src="script.js"></script>
 </body>
 </html>
