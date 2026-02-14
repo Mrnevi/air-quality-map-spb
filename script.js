@@ -156,7 +156,7 @@ function createDemoData() {
     { min: 201, max: 300 }    // Очень нездоровое
   ];
 
-  districts.forEach((district, index) => {
+  districts.forEach((district, iаndex) => {
     const range = ranges[index % ranges.length]; // чередуем категории
     const aqius = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
 
@@ -317,7 +317,7 @@ function showLoading(show) {
     el = document.createElement('div');
     el.id = 'loading';
     el.innerHTML = `
-      <div class="loading-spinner"></div>
+      <div><img src="loading.gif"></div>
       <div class="loading-text">Загружаем актуальные данные о воздухе...</div>
     `;
     document.body.appendChild(el);
