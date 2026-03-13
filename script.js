@@ -1,345 +1,214 @@
-// Конфигурация
-const SPB_CENTER = [59.939095, 30.315868];
+const SPB_CENTER = [59.93428, 30.3351];
 
-// Все 18 районов Санкт-Петербурга
 const districts = [
-  {
-    name: "Адмиралтейский район",
-    coords: [[59.915, 30.300], [59.915, 30.350], [59.930, 30.350], [59.930, 30.300], [59.915, 30.300]],
-    points: [{ lat: 59.916, lon: 30.318 }]
-  },
-  {
-    name: "Василеостровский район",
-    coords: [[59.930, 30.220], [59.930, 30.280], [59.950, 30.280], [59.950, 30.220], [59.930, 30.220]],
-    points: [{ lat: 59.941, lon: 30.258 }]
-  },
-  {
-    name: "Выборгский район",
-    coords: [[60.000, 30.250], [60.000, 30.350], [60.050, 30.350], [60.050, 30.250], [60.000, 30.250]],
-    points: [{ lat: 60.025, lon: 30.290 }]
-  },
-  {
-    name: "Калининский район",
-    coords: [[59.970, 30.350], [59.970, 30.450], [60.020, 30.450], [60.020, 30.350], [59.970, 30.350]],
-    points: [{ lat: 59.990, lon: 30.390 }]
-  },
-  {
-    name: "Кировский район",
-    coords: [[59.850, 30.150], [59.850, 30.250], [59.900, 30.250], [59.900, 30.150], [59.850, 30.150]],
-    points: [{ lat: 59.875, lon: 30.200 }]
-  },
-  {
-    name: "Колпинский район",
-    coords: [[59.730, 30.500], [59.730, 30.600], [59.800, 30.600], [59.800, 30.500], [59.730, 30.500]],
-    points: [{ lat: 59.765, lon: 30.550 }]
-  },
-  {
-    name: "Красногвардейский район",
-    coords: [[59.930, 30.400], [59.930, 30.500], [59.980, 30.500], [59.980, 30.400], [59.930, 30.400]],
-    points: [{ lat: 59.955, lon: 30.450 }]
-  },
-  {
-    name: "Красносельский район",
-    coords: [[59.810, 30.080], [59.810, 30.180], [59.870, 30.180], [59.870, 30.080], [59.810, 30.080]],
-    points: [{ lat: 59.840, lon: 30.130 }]
-  },
-  {
-    name: "Кронштадтский район",
-    coords: [[59.980, 29.750], [59.980, 29.800], [60.020, 29.800], [60.020, 29.750], [59.980, 29.750]],
-    points: [{ lat: 60.000, lon: 29.775 }]
-  },
-  {
-    name: "Курортный район",
-    coords: [[60.100, 29.800], [60.100, 29.900], [60.150, 29.900], [60.150, 29.800], [60.100, 29.800]],
-    points: [{ lat: 60.125, lon: 29.850 }]
-  },
-  {
-    name: "Московский район",
-    coords: [[59.850, 30.320], [59.850, 30.400], [59.900, 30.400], [59.900, 30.320], [59.850, 30.320]],
-    points: [{ lat: 59.875, lon: 30.360 }]
-  },
-  {
-    name: "Невский район",
-    coords: [[59.850, 30.400], [59.850, 30.500], [59.900, 30.500], [59.900, 30.400], [59.850, 30.400]],
-    points: [{ lat: 59.875, lon: 30.450 }]
-  },
-  {
-    name: "Петроградский район",
-    coords: [[59.950, 30.280], [59.950, 30.320], [59.970, 30.320], [59.970, 30.280], [59.950, 30.280]],
-    points: [{ lat: 59.960, lon: 30.300 }]
-  },
-  {
-    name: "Петродворцовый район",
-    coords: [[59.870, 29.900], [59.870, 30.000], [59.920, 30.000], [59.920, 29.900], [59.870, 29.900]],
-    points: [{ lat: 59.895, lon: 29.950 }]
-  },
-  {
-    name: "Приморский район",
-    coords: [[59.970, 30.150], [59.970, 30.250], [60.050, 30.250], [60.050, 30.150], [59.970, 30.150]],
-    points: [{ lat: 60.010, lon: 30.200 }]
-  },
-  {
-    name: "Пушкинский район",
-    coords: [[59.700, 30.350], [59.700, 30.450], [59.750, 30.450], [59.750, 30.350], [59.700, 30.350]],
-    points: [{ lat: 59.725, lon: 30.400 }]
-  },
-  {
-    name: "Фрунзенский район",
-    coords: [[59.860, 30.320], [59.860, 30.400], [59.900, 30.400], [59.900, 30.320], [59.860, 30.320]],
-    points: [{ lat: 59.880, lon: 30.360 }]
-  },
-  {
-    name: "Центральный район",
-    coords: [[59.920, 30.340], [59.920, 30.400], [59.950, 30.400], [59.950, 30.340], [59.920, 30.340]],
-    points: [{ lat: 59.935, lon: 30.370 }]
-  }
+  { name: "Адмиралтейский",     coords: [[59.915,30.300],[59.915,30.350],[59.930,30.350],[59.930,30.300],[59.915,30.300]] },
+  { name: "Василеостровский",   coords: [[59.930,30.220],[59.930,30.280],[59.950,30.280],[59.950,30.220],[59.930,30.220]] },
+  { name: "Выборгский",         coords: [[60.000,30.250],[60.000,30.350],[60.050,30.350],[60.050,30.250],[60.000,30.250]] },
+  { name: "Калининский",        coords: [[59.970,30.350],[59.970,30.450],[60.020,30.450],[60.020,30.350],[59.970,30.350]] },
+  { name: "Кировский",          coords: [[59.850,30.150],[59.850,30.250],[59.900,30.250],[59.900,30.150],[59.850,30.150]] },
+  { name: "Колпинский",         coords: [[59.730,30.500],[59.730,30.600],[59.800,30.600],[59.800,30.500],[59.730,30.500]] },
+  { name: "Красногвардейский",  coords: [[59.930,30.400],[59.930,30.500],[59.980,30.500],[59.980,30.400],[59.930,30.400]] },
+  { name: "Красносельский",     coords: [[59.810,30.080],[59.810,30.180],[59.870,30.180],[59.870,30.080],[59.810,30.080]] },
+  { name: "Кронштадтский",      coords: [[59.980,29.750],[59.980,29.800],[60.020,29.800],[60.020,29.750],[59.980,29.750]] },
+  { name: "Курортный",          coords: [[60.100,29.800],[60.100,29.900],[60.150,29.900],[60.150,29.800],[60.100,29.800]] },
+  { name: "Московский",         coords: [[59.850,30.320],[59.850,30.400],[59.900,30.400],[59.900,30.320],[59.850,30.320]] },
+  { name: "Невский",            coords: [[59.850,30.400],[59.850,30.500],[59.900,30.500],[59.900,30.400],[59.850,30.400]] },
+  { name: "Петроградский",      coords: [[59.950,30.280],[59.950,30.320],[59.970,30.320],[59.970,30.280],[59.950,30.280]] },
+  { name: "Петродворцовый",     coords: [[59.870,29.900],[59.870,30.000],[59.920,30.000],[59.920,29.900],[59.870,29.900]] },
+  { name: "Приморский",         coords: [[59.970,30.150],[59.970,30.250],[60.050,30.250],[60.050,30.150],[59.970,30.150]] },
+  { name: "Пушкинский",         coords: [[59.700,30.350],[59.700,30.450],[59.750,30.450],[59.750,30.350],[59.700,30.350]] },
+  { name: "Фрунзенский",        coords: [[59.860,30.320],[59.860,30.400],[59.900,30.400],[59.900,30.320],[59.860,30.320]] },
+  { name: "Центральный",        coords: [[59.920,30.340],[59.920,30.400],[59.950,30.400],[59.950,30.340],[59.920,30.340]] }
 ];
 
 let myMap;
 let currentData = [];
-let isFirstLoad = true;  // чтобы не показывать второй loading при старте
+let lastRefresh = 0;
+let selectedDistrict = null;
+let panelData = null;
+let displayFreezeUntil = 0;           // до какого времени замораживаем отображаемые значения
+const FREEZE_MINUTES = 4;             // 4 минуты заморозки после выбора района или обновления
 
-// Инициализация карты
 ymaps.ready(init);
 
-async function init() {
-  myMap = new ymaps.Map("map", {
+function init() {
+  myMap = new ymaps.Map('map', {
     center: SPB_CENTER,
     zoom: 10,
     controls: ['zoomControl', 'fullscreenControl']
   });
 
-  addMapControls();
-  await refreshData();           // здесь рисуются все полигоны
-  addLegend(myMap);
-  updateStats();
-}
+  document.getElementById('zoom-in').onclick     = () => myMap.setZoom(myMap.getZoom() + 1);
+  document.getElementById('zoom-out').onclick    = () => myMap.setZoom(myMap.getZoom() - 1);
+  document.getElementById('locate-btn').onclick  = () => navigator.geolocation?.getCurrentPosition(p => myMap.setCenter([p.coords.latitude, p.coords.longitude], 14));
 
-// Управление кнопками на карте
-function addMapControls() {
-  document.getElementById('zoom-in').addEventListener('click', () => myMap.setZoom(myMap.getZoom() + 1));
-  document.getElementById('zoom-out').addEventListener('click', () => myMap.setZoom(myMap.getZoom() - 1));
-  document.getElementById('locate-btn').addEventListener('click', () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        myMap.setCenter([pos.coords.latitude, pos.coords.longitude], 15);
-      }, () => {
-        alert('Не удалось определить местоположение');
-      });
-    }
-  });
-  document.getElementById('refresh-btn').addEventListener('click', refreshData);
-  document.getElementById('close-info').addEventListener('click', () => {
+  document.getElementById('refresh-btn').onclick = handleRefreshClick;
+  document.getElementById('close-info').onclick  = () => {
     document.getElementById('info').classList.add('hidden');
-  });
-}
-
-// Основная функция обновления данных
-async function refreshData() {
-  if (!isFirstLoad) {
-    showLoading(true);
-  }
-
-  myMap.geoObjects.removeAll();
-  currentData = [];
-
-  createDemoData();               // здесь создаются полигоны и данные
-
-  updateLastUpdateTime();
-  updateStats();
-
-  if (!isFirstLoad) {
-    showLoading(false);
-  }
-
-  isFirstLoad = false;
-}
-
-// Генерация демо-данных + отрисовка полигонов
-function createDemoData() {
-  console.log('🎮 Используются демо-данные');
-
-  const ranges = [
-    { min: 0, max: 50 },      // Отличное
-    { min: 51, max: 100 },    // Удовлетворительное
-    { min: 101, max: 150 },   // Нездоровое для чувствительных
-    { min: 151, max: 200 },   // Нездоровое
-    { min: 201, max: 300 }    // Очень нездоровое / опасное
-  ];
-
-  districts.forEach((district, index) => {
-    // случайный AQI в пределах диапазона
-    const range = ranges[index % ranges.length];
-    const aqius = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
-
-    currentData.push({ district: district.name, aqi: aqius });
-
-    // Отрисовка полигона района
-    createDistrictPolygon(district, aqius);
-  });
-}
-
-// Создание полигона района на карте
-function createDistrictPolygon(district, aqius) {
-  const quality = getAirQualityInfo(aqius);
-
-  const polygon = new ymaps.Polygon([
-    district.coords
-  ], {
-    hintContent: `${district.name} — AQI ${aqius}`
-  }, {
-    fillColor: quality.color + '88',     // полупрозрачный заливка
-    strokeColor: quality.strokeColor,
-    strokeWidth: 2,
-    opacity: 0.85,
-    fillOpacity: 0.55
-  });
-
-  // Содержимое балуна
-  polygon.properties.set({
-    balloonContentHeader: `<b>${district.name}</b>`,
-    balloonContentBody: `
-      <b>${quality.text} (${quality.status})</b><br>
-      AQI: <b>${aqius}</b><br><br>
-      ${quality.recommendation}<br><br>
-      <small>Обновлено: ${new Date().toLocaleTimeString('ru-RU')}</small>
-    `
-  });
-
-  // При клике по полигону — открываем боковую панель
-  polygon.events.add('click', function () {
-    updateInfoPanel(
-      district.name,
-      quality.text,
-      quality.description,
-      aqius,
-      quality.status,
-      quality.recommendation,
-      quality.color
-    );
-  });
-
-  myMap.geoObjects.add(polygon);
-}
-
-// Определение качества воздуха по AQI
-function getAirQualityInfo(aqius) {
-  if (aqius <= 50) {
-    return {
-      text: "Отличное",
-      status: "Здоровое",
-      description: "Качество воздуха идеальное.",
-      recommendation: "Можно спокойно проводить время на улице.",
-      color: '#00E400',
-      strokeColor: '#009900'
-    };
-  } else if (aqius <= 100) {
-    return {
-      text: "Удовлетворительное",
-      status: "Умеренно",
-      description: "Качество воздуха приемлемое.",
-      recommendation: "Чувствительные группы могут заниматься обычной активностью.",
-      color: '#FFFF00',
-      strokeColor: '#FFAA00'
-    };
-  } else if (aqius <= 150) {
-    return {
-      text: "Нездоровое для чувствительных групп",
-      status: "Внимание",
-      description: "Члены чувствительных групп могут испытывать последствия.",
-      recommendation: "Сократите длительные нагрузки на улице.",
-      color: '#FF7E00',
-      strokeColor: '#FF5500'
-    };
-  } else if (aqius <= 200) {
-    return {
-      text: "Нездоровое",
-      status: "Опасно",
-      description: "Все могут начать испытывать последствия.",
-      recommendation: "Ограничьте пребывание на улице, особенно дети и пожилые.",
-      color: '#FF0000',
-      strokeColor: '#CC0000'
-    };
-  } else {
-    return {
-      text: "Очень нездоровое",
-      status: "Критично",
-      description: "Серьёзный риск для здоровья всех групп.",
-      recommendation: "Оставайтесь в помещении, используйте очистители воздуха.",
-      color: '#8F3F97',
-      strokeColor: '#660066'
-    };
-  }
-}
-
-// Обновление боковой панели
-function updateInfoPanel(name, quality, description, index, status, recommendation, color) {
-  document.getElementById('district-name').textContent = name;
-  document.getElementById('air-quality-value').textContent = index;
-  document.getElementById('quality-status').textContent = `${quality} — ${status}`;
-  document.getElementById('quality-description').textContent = recommendation;
-
-  const badgeDot = document.querySelector('.badge-dot');
-  const qualityBadge = document.getElementById('quality-badge');
-  badgeDot.style.backgroundColor = color;
-  qualityBadge.style.borderLeft = `4px solid ${color}`;
-
-  document.getElementById('info').classList.remove('hidden');
-}
-
-// Обновление статистики
-function updateStats() {
-  if (!currentData.length) return;
-  const avg = Math.round(currentData.reduce((s, i) => s + i.aqi, 0) / currentData.length);
-  const best = currentData.reduce((a, b) => a.aqi < b.aqi ? a : b);
-  const worst = currentData.reduce((a, b) => a.aqi > b.aqi ? a : b);
-
-  document.getElementById('avg-aqi').textContent = avg;
-  document.getElementById('best-district').textContent = best.district.split(' ')[0];
-  document.getElementById('worst-district').textContent = worst.district.split(' ')[0];
-}
-
-// Время последнего обновления
-function updateLastUpdateTime() {
-  const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  document.getElementById('last-update-time').textContent = `Обновлено: ${time}`;
-}
-
-// Добавление легенды на карту
-function addLegend(map) {
-  const Legend = function () { ymaps.util.augment(Legend, ymaps.Control); };
-  Legend.prototype.onAdd = function () {
-    const el = ymaps.util.createElement('div');
-    el.innerHTML = `
-      <div style="background:white; padding:16px; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.15); font-family:'Inter',sans-serif; font-size:12px; max-width:220px; line-height:1.4; border:1px solid #e2e8f0;">
-        <h4 style="margin:0 0 12px 0; font-size:14px; font-weight:600; color:#1e293b;">Индекс качества воздуха (AQI)</h4>
-        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#00E400; margin-right:8px; border-radius:2px;"></div><span>0–50: Отличное</span></div>
-        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FFFF00; margin-right:8px; border-radius:2px;"></div><span>51–100: Удовлетворительное</span></div>
-        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FF7E00; margin-right:8px; border-radius:2px;"></div><span>101–150: Нездоровое</span></div>
-        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#FF0000; margin-right:8px; border-radius:2px;"></div><span>151–200: Опасно</span></div>
-        <div style="display:flex; align-items:center; margin:6px 0;"><div style="width:12px; height:12px; background:#8F3F97; margin-right:8px; border-radius:2px;"></div><span>201+: Критично</span></div>
-        <div style="margin-top:12px; padding-top:12px; border-top:1px solid #e2e8f0; font-size:11px; color:#64748b;">Источник: Демо-данные</div>
-      </div>`;
-    return el;
+    selectedDistrict = null;
   };
 
-  map.controls.add(new Legend({ position: { top: 120, right: 20 } }));
+  refreshData();                    // первый запуск
+  setInterval(refreshData, 300000); // каждые 5 минут
 }
 
-// Показ/скрытие оверлея загрузки
-function showLoading(show) {
-  let el = document.getElementById('loading');
-  if (!el && show) {
-    el = document.createElement('div');
-    el.id = 'loading';
-    el.innerHTML = `
-      <div><img src="loading.gif" alt="Загрузка"></div>
-      <div class="loading-text">Загружаем актуальные данные о воздухе...</div>
-    `;
-    document.body.appendChild(el);
+function handleRefreshClick() {
+  const now = Date.now();
+  // принудительная заморозка отображения на 4 минуты после нажатия "Обновить"
+  displayFreezeUntil = now + FREEZE_MINUTES * 60000;
+
+  document.getElementById('refresh-btn').disabled = true;
+  let sec = FREEZE_MINUTES * 60;
+  const t = setInterval(() => {
+    sec--;
+    document.getElementById('refresh-btn').innerHTML = `⏳ ${Math.floor(sec/60)}:${(sec%60).toString().padStart(2,'0')}`;
+    if (sec <= 0) {
+      clearInterval(t);
+      document.getElementById('refresh-btn').disabled = false;
+      document.getElementById('refresh-btn').innerHTML = '<span class="btn-icon">🔄</span> Обновить';
+    }
+  }, 1000);
+
+  refreshData();
+}
+
+async function refreshData() {
+  if (Date.now() - lastRefresh < 300000) return;
+  lastRefresh = Date.now();
+
+  // имитация задержки запроса
+  await new Promise(r => setTimeout(r, 700));
+
+  const prev = currentData.slice();
+  currentData = [];
+
+  if (prev.length === 0) {
+    initDemoData();
+  } else {
+    evolveDemoData(prev);
   }
-  if (el) el.style.display = show ? 'flex' : 'none';
+
+  updateMap();
+
+  const now = Date.now();
+  if (now >= displayFreezeUntil) {
+    updateStats();
+    updateLastUpdateTime();
+
+    if (selectedDistrict && panelData) {
+      const fresh = currentData.find(d => d.district === selectedDistrict);
+      if (fresh) {
+        panelData = { ...fresh };
+        renderPanel(panelData);
+      }
+    }
+  }
+  // если заморозка активна — ничего не обновляем в статистике и панели
 }
 
-// Автообновление каждые 5 минут
-setInterval(refreshData, 5 * 60 * 1000);
+function initDemoData() {
+  districts.forEach(d => {
+    const aqi = 35 + Math.floor(Math.random() * 130);
+    currentData.push({
+      district: d.name,
+      aqi,
+      pm25: 10 + Math.floor(Math.random() * 50),
+      pm10: 20 + Math.floor(Math.random() * 70),
+      no2:  12 + Math.floor(Math.random() * 40),
+      o3:   25 + Math.floor(Math.random() * 80),
+      so2:   4 + Math.floor(Math.random() * 15),
+      co:   (0.6 + Math.random() * 2.5).toFixed(1)
+    });
+  });
+}
+
+function evolveDemoData(prev) {
+  districts.forEach(d => {
+    const old = prev.find(x => x.district === d.name) || {aqi:60,pm25:25,pm10:45,no2:20,o3:40,so2:8,co:"1.5"};
+    currentData.push({
+      district: d.name,
+      aqi:  Math.max(10, Math.min(250, old.aqi  + Math.floor(Math.random()*9)-4)),
+      pm25: Math.max(5,  Math.min(100, old.pm25 + Math.floor(Math.random()*5)-2)),
+      pm10: Math.max(10, Math.min(150, old.pm10 + Math.floor(Math.random()*7)-3)),
+      no2:  Math.max(5,  Math.min(80,  old.no2  + Math.floor(Math.random()*7)-3)),
+      o3:   Math.max(10, Math.min(140, old.o3   + Math.floor(Math.random()*9)-4)),
+      so2:  Math.max(1,  Math.min(40,  old.so2  + Math.floor(Math.random()*5)-2)),
+      co:   (Math.max(0.4, Math.min(6, parseFloat(old.co) + (Math.random()*0.4 - 0.2)))).toFixed(1)
+    });
+  });
+}
+
+function updateMap() {
+  myMap.geoObjects.removeAll();
+
+  currentData.forEach(item => {
+    const d = districts.find(x => x.name === item.district);
+    if (!d) return;
+
+    const q = getQuality(item.aqi);
+
+    const poly = new ymaps.Polygon([d.coords], {}, {
+      fillColor: q.color + '66',
+      strokeColor: q.color,
+      strokeWidth: 2,
+      opacity: 0.75
+    });
+
+    poly.events.add('click', () => {
+      // при выборе района — фиксируем отображение на 4 минуты
+      displayFreezeUntil = Date.now() + FREEZE_MINUTES * 60000;
+
+      selectedDistrict = item.district;
+      panelData = { ...item };
+      renderPanel(panelData);
+      document.getElementById('info').classList.remove('hidden');
+    });
+
+    myMap.geoObjects.add(poly);
+  });
+}
+
+function getQuality(aqi) {
+  if (aqi <= 50)  return { color: '#00e400', text: 'Отличное',   status: 'Здоровое',   rec: 'Можно спокойно гулять.' };
+  if (aqi <= 100) return { color: '#ffff00', text: 'Хорошее',    status: 'Умеренное',  rec: 'Подходит большинству людей.' };
+  if (aqi <= 150) return { color: '#ff7e00', text: 'Умеренно',   status: 'Нездорово для чувствительных', rec: 'Сократите активность на улице.' };
+  if (aqi <= 200) return { color: '#ff0000', text: 'Нездорово',  status: 'Опасно',     rec: 'Ограничьте пребывание на улице.' };
+  return                 { color: '#8f3f97', text: 'Очень плохо', status: 'Критично',   rec: 'Лучше оставаться дома.' };
+}
+
+function renderPanel(data) {
+  if (!data) return;
+  const q = getQuality(data.aqi);
+
+  document.getElementById('district-name').textContent      = data.district;
+  document.getElementById('air-quality-value').textContent  = data.aqi;
+  document.getElementById('quality-status').textContent     = `${q.text} — ${q.status}`;
+  document.getElementById('quality-description').textContent = q.rec;
+
+  document.querySelector('.badge-dot').style.backgroundColor = q.color;
+  document.getElementById('quality-badge').style.borderLeftColor = q.color;
+
+  document.getElementById('pm25').textContent = `PM2.5: ${data.pm25} µg/m³`;
+  document.getElementById('pm10').textContent = `PM10: ${data.pm10} µg/m³`;
+  document.getElementById('no2').textContent  = `NO₂: ${data.no2} µg/m³`;
+  document.getElementById('o3').textContent   = `O₃: ${data.o3} µg/m³`;
+  document.getElementById('so2').textContent  = `SO₂: ${data.so2} µg/m³`;
+  document.getElementById('co').textContent   = `CO: ${data.co} mg/m³`;
+}
+
+function updateStats() {
+  if (!currentData.length) return;
+
+  const avg = Math.round(currentData.reduce((s, x) => s + x.aqi, 0) / currentData.length);
+  const best  = currentData.reduce((a,b) => a.aqi < b.aqi ? a : b);
+  const worst = currentData.reduce((a,b) => a.aqi > b.aqi ? a : b);
+
+  document.getElementById('avg-aqi').textContent       = avg;
+  document.getElementById('best-district').textContent  = best.district;
+  document.getElementById('worst-district').textContent = worst.district;
+}
+
+function updateLastUpdateTime() {
+  document.getElementById('last-update-time').textContent =
+    `Обновлено: ${new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}`;
+}
