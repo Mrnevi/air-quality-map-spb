@@ -27,7 +27,7 @@ let isFirstLoad = true;
 
 ymaps.ready(init);
 
-function init() {
+async function init() {
   myMap = new ymaps.Map('map', {
     center: SPB_CENTER,
     zoom: 10,
