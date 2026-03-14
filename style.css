@@ -263,6 +263,7 @@ main {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     padding: 1.5rem;
+    position: relative;
 }
 
 .panel-header h3 {
