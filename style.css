@@ -81,6 +81,10 @@ header::before {
     gap: 1.5rem;
 }
 
+.hidden {
+    display: none !important;
+}
+
 /* Кнопки */
 .btn-primary {
     background: rgba(255, 255, 255, 0.2);
