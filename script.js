@@ -92,7 +92,7 @@ async function refreshData(force = false) {
  * @returns {Promise<Array>} Массив объектов с данными по районам
  */
 async function loadDistrictAQI() {
-  const URL = 'http://87.249.53.42:4085/api/v1/aqi/spb';
+  const URL = 'https://spbaqi.duckdns.org/api/v1/aqi/spb';
 
   try {
     const response = await fetch(URL);
