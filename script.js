@@ -56,12 +56,12 @@ function init() {
 
 function handleRefreshClick() {
   document.getElementById('refresh-btn').disabled = true;
-  document.getElementById('refresh-btn').innerHTML = 'Обновление...';
+  document.getElementById('refresh-btn-text').innerHTML = 'Обновление...';
   console.log('Обновление данных...');
 
   refreshData(true).then(() => {
     document.getElementById('refresh-btn').disabled = false;
-    document.getElementById('refresh-btn').innerHTML = 'Обновить';
+    document.getElementById('refresh-btn-text').innerHTML = 'Обновить';
     console.log('Данные обновлены.');
   });
 }
