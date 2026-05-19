@@ -853,3 +853,88 @@ input:checked + .toggle-slider:before {
     display: none;
   }
 }
+/* ────────────────────────────────────────────────
+   КУКИ-БАННЕР
+   ──────────────────────────────────────────────── */
+.cookie-banner {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: var(--border-radius);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 5000;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: slideUp 0.4s ease-out;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.cookie-banner.hidden {
+  display: none;
+}
+
+.cookie-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.cookie-icon {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.cookie-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex: 1;
+  margin: 0;
+}
+
+.cookie-link {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cookie-link:hover {
+  color: var(--accent-hover);
+}
+
+#accept-cookies {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .cookie-banner {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 12px;
+  }
+  .cookie-content {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .cookie-text {
+    font-size: 0.8rem;
+  }
+  #accept-cookies {
+    width: 100%;
+  }
+}

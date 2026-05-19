@@ -250,6 +250,17 @@ function initApp() {
     }
   };
 
+  // ========== КУКИ-БАННЕР ==========
+  const cookieBanner = document.getElementById('cookie-banner');
+  const acceptCookiesBtn = document.getElementById('accept-cookies');
+  if (!localStorage.getItem('cookiesAccepted')) {
+    cookieBanner.classList.remove('hidden');
+  }
+  acceptCookiesBtn.onclick = () => {
+    localStorage.setItem('cookiesAccepted', 'true');
+    cookieBanner.classList.add('hidden');
+  };
+
   // ========== КАРТА ==========
   ymaps.ready(() => {
     myMap = new ymaps.Map('map', { center: SPB_CENTER, zoom: 10, controls: [] });
