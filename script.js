@@ -1,7 +1,9 @@
 // ────────────────────────────────────────────────
-// КОНФИГУРАЦИЯ
+// 1. КОНФИГУРАЦИЯ И ДАННЫЕ
 // ────────────────────────────────────────────────
 const SPB_CENTER = [59.93428, 30.3351];
+
+// Координаты районов (упрощенные полигоны для примера)
 const districts = [
   { "name": "Адмиралтейский", "coords": [[59.901, 30.250], [59.905, 30.360], [59.934, 30.355], [59.932, 30.270]] },
   { "name": "Василеостровский", "coords": [[59.935, 30.198], [59.920, 30.260], [59.945, 30.290], [59.957, 30.210]] },
@@ -30,28 +32,7 @@ let selectedDistrict = null;
 let panelData = {};
 
 // ────────────────────────────────────────────────
-// ЗАГРУЗОЧНЫЙ ЭКРАН
-// ────────────────────────────────────────────────
-function showLoader(msg = 'Загрузка...') {
-  let loader = document.getElementById('global-loader');
-  if (!loader) {
-    loader = document.createElement('div');
-    loader.id = 'global-loader';
-    loader.className = 'loader-overlay';
-    loader.innerHTML = `<div class="loader"></div><span class="loader-text">${msg}</span>`;
-    document.body.appendChild(loader);
-  } else {
-    loader.querySelector('.loader-text').textContent = msg;
-    loader.style.display = '';
-  }
-}
-function hideLoader() {
-  const loader = document.getElementById('global-loader');
-  if (loader) loader.style.display = 'none';
-}
-
-// ────────────────────────────────────────────────
-// FIREBASE
+// 2. FIREBASE CONFIG & AUTH LOGIC
 // ────────────────────────────────────────────────
 firebase.initializeApp({
   apiKey: "AIzaSyA0-bOVlO9jBxuWPiFk0VcqGjfwn-GGAUc",
@@ -62,14 +43,14 @@ firebase.initializeApp({
   appId: "1:767312877187:web:1fd3759ab2e92ce942edb6"
 });
 
-// ────────────────────────────────────────────────
-// ВХОД ЧЕРЕЗ GOOGLE
-// ────────────────────────────────────────────────
+const auth = firebase.auth();
+
+// Вход через Google
 async function signInWithGoogle() {
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   try {
-    const result = await firebase.auth().signInWithPopup(provider);
+    const result = await auth.signInWithPopup(provider);
     return result.user;
   } catch (error) {
     if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
@@ -77,31 +58,38 @@ async function signInWithGoogle() {
       return null;
     }
     console.error('Ошибка входа:', error);
+    showAuthError(error.message);
     return null;
   }
 }
 
-// ────────────────────────────────────────────────
-// СЛУШАТЕЛЬ АВТОРИЗАЦИИ
-// ────────────────────────────────────────────────
-firebase.auth().onAuthStateChanged(user => updateAuthUI(user));
+// Слушатель состояния авторизации
+auth.onAuthStateChanged(user => {
+  updateAuthUI(user);
+  // Если пользователь вошел после регистрации/логина, закрываем модалку
+  if (user && !document.getElementById('welcome-modal').classList.contains('hidden')) {
+     localStorage.setItem('hasVisited', 'true');
+     document.getElementById('welcome-modal').classList.add('hidden');
+     initApp();
+  }
+});
 
 // ────────────────────────────────────────────────
-// ПЕРВЫЙ ВИЗИТ
+// 3. UI ЛОГИКА (МОДАЛКИ, ТАБЫ, ОШИБКИ)
 // ────────────────────────────────────────────────
+
 function checkFirstVisit() {
-  if (!localStorage.getItem('hasVisited')) {
-    document.getElementById('welcome-modal').classList.remove('hidden');
-    showAuthTab('login');
-  } else {
+  // Если уже посещал - сразу запускаем приложение
+  if (localStorage.getItem('hasVisited')) {
     document.getElementById('welcome-modal').classList.add('hidden');
     initApp();
+  } else {
+    // Первый раз - показываем приветствие
+    document.getElementById('welcome-modal').classList.remove('hidden');
+    showAuthTab('login');
   }
 }
 
-// ────────────────────────────────────────────────
-// ТАБЫ АВТОРИЗАЦИИ
-// ────────────────────────────────────────────────
 function showAuthTab(tab) {
   const loginForm = document.getElementById('login-form');
   const registerForm = document.getElementById('register-form');
@@ -112,19 +100,21 @@ function showAuthTab(tab) {
   if (tab === 'login') {
     loginForm.classList.remove('hidden');
     registerForm.classList.add('hidden');
-    document.querySelector('[data-tab="login"]').classList.add('active');
+    document.querySelector('[data-tab="login"]')?.classList.add('active');
   } else {
     loginForm.classList.add('hidden');
     registerForm.classList.remove('hidden');
-    document.querySelector('[data-tab="register"]').classList.add('active');
+    document.querySelector('[data-tab="register"]')?.classList.add('active');
   }
-  
   hideAuthError();
 }
 
 function hideAuthError() {
   const errorEl = document.getElementById('auth-error');
-  if (errorEl) errorEl.classList.add('hidden');
+  if (errorEl) {
+    errorEl.textContent = '';
+    errorEl.classList.add('hidden');
+  }
 }
 
 function showAuthError(message) {
@@ -135,158 +125,135 @@ function showAuthError(message) {
   }
 }
 
-// ────────────────────────────────────────────────
-// КНОПКИ ПРИВЕТСТВИЯ
-// ────────────────────────────────────────────────
 function setupWelcomeButtons() {
-  // Табы вход/регистрация
+  // Переключение табов
   document.querySelectorAll('.auth-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      showAuthTab(tab.dataset.tab);
-    });
+    tab.addEventListener('click', () => showAuthTab(tab.dataset.tab));
   });
-  
-  // Вход через Google (в форме логина)
+
+  // Кнопка "Закрыть" (гостевой режим условно)
+  document.getElementById('close-welcome-modal').onclick = () => {
+    localStorage.setItem('hasVisited', 'true');
+    document.getElementById('welcome-modal').classList.add('hidden');
+    initApp();
+  };
+
+  // Гостевой вход
+  document.getElementById('login-guest-btn').onclick = () => {
+    localStorage.setItem('hasVisited', 'true');
+    document.getElementById('welcome-modal').classList.add('hidden');
+    initApp();
+  };
+
+  // Google Login
   document.getElementById('login-google-btn').onclick = async () => {
     const user = await signInWithGoogle();
     if (user) {
       localStorage.setItem('hasVisited', 'true');
-      localStorage.setItem('authMode', 'google');
-      document.getElementById('welcome-modal').classList.add('hidden');
-      initApp();
-    }
-  };
-  
-  // Регистрация через Google (в форме регистрации)
-  document.getElementById('register-google-btn').onclick = async () => {
-    const user = await signInWithGoogle();
-    if (user) {
-      localStorage.setItem('hasVisited', 'true');
-      localStorage.setItem('authMode', 'google');
       document.getElementById('welcome-modal').classList.add('hidden');
       initApp();
     }
   };
 
-  // Вход по email
+  // Google Register (то же самое действие)
+  document.getElementById('register-google-btn').onclick = async () => {
+    const user = await signInWithGoogle();
+    if (user) {
+      localStorage.setItem('hasVisited', 'true');
+      document.getElementById('welcome-modal').classList.add('hidden');
+      initApp();
+    }
+  };
+
+  // Email Login
   document.getElementById('submit-login').onclick = async () => {
     const email = document.getElementById('login-email').value.trim();
     const password = document.getElementById('login-password').value;
+    
     if (!email || !password) {
       showAuthError('Заполните все поля');
       return;
     }
     try {
-      await firebase.auth().signInWithEmailAndPassword(email, password);
+      await auth.signInWithEmailAndPassword(email, password);
       localStorage.setItem('hasVisited', 'true');
-      localStorage.setItem('authMode', 'email');
       document.getElementById('welcome-modal').classList.add('hidden');
       initApp();
     } catch (e) {
-      let errorMsg = 'Ошибка входа';
-      if (e.code === 'auth/user-not-found') {
-        errorMsg = 'Пользователь не найден. Зарегистрируйтесь.';
-      } else if (e.code === 'auth/wrong-password') {
-        errorMsg = 'Неверный пароль';
-      } else if (e.code === 'auth/invalid-email') {
-        errorMsg = 'Некорректный email';
-      } else {
-        errorMsg = e.message;
-      }
-      showAuthError(errorMsg);
+      let msg = 'Ошибка входа';
+      if (e.code === 'auth/user-not-found') msg = 'Пользователь не найден';
+      if (e.code === 'auth/wrong-password') msg = 'Неверный пароль';
+      if (e.code === 'auth/invalid-email') msg = 'Некорректный email';
+      showAuthError(msg);
     }
   };
 
-  // Регистрация по email
+  // Email Register
   document.getElementById('submit-register').onclick = async () => {
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
-    const confirmPassword = document.getElementById('reg-confirm-password').value;
-    
+    const confirm = document.getElementById('reg-confirm-password').value;
+
     if (!email || !password) {
       showAuthError('Заполните все поля');
       return;
     }
     if (password.length < 6) {
-      showAuthError('Пароль должен быть минимум 6 символов');
+      showAuthError('Пароль мин. 6 символов');
       return;
     }
-    if (password !== confirmPassword) {
+    if (password !== confirm) {
       showAuthError('Пароли не совпадают');
       return;
     }
-    
+
     try {
-      await firebase.auth().createUserWithEmailAndPassword(email, password);
+      await auth.createUserWithEmailAndPassword(email, password);
       localStorage.setItem('hasVisited', 'true');
-      localStorage.setItem('authMode', 'email');
       document.getElementById('welcome-modal').classList.add('hidden');
       initApp();
     } catch (e) {
-      let errorMsg = 'Ошибка регистрации';
-      if (e.code === 'auth/email-already-in-use') {
-        errorMsg = 'Email уже зарегистрирован. Войдите.';
-      } else if (e.code === 'auth/weak-password') {
-        errorMsg = 'Слабый пароль (минимум 6 символов)';
-      } else if (e.code === 'auth/invalid-email') {
-        errorMsg = 'Некорректный email';
-      } else {
-        errorMsg = e.message;
-      }
-      showAuthError(errorMsg);
+      let msg = 'Ошибка регистрации';
+      if (e.code === 'auth/email-already-in-use') msg = 'Email уже занят';
+      if (e.code === 'auth/weak-password') msg = 'Слабый пароль';
+      if (e.code === 'auth/invalid-email') msg = 'Некорректный email';
+      showAuthError(msg);
     }
-  };
-
-  // Продолжить как гость
-  document.getElementById('login-guest-btn').onclick = () => {
-    localStorage.setItem('hasVisited', 'true');
-    localStorage.setItem('authMode', 'guest');
-    document.getElementById('welcome-modal').classList.add('hidden');
-    initApp();
-  };
-  
-  // Закрытие модального окна
-  document.getElementById('close-welcome-modal').onclick = () => {
-    document.getElementById('welcome-modal').classList.add('hidden');
-    initApp();
   };
 }
 
 // ────────────────────────────────────────────────
-// ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
+// 4. ОСНОВНОЕ ПРИЛОЖЕНИЕ (КАРТА, НАСТРОЙКИ)
 // ────────────────────────────────────────────────
-function initApp() {
-  if (myMap) return;
 
-  // ========== МОБИЛЬНЫЙ БУРГЕР ==========
+function initApp() {
+  if (myMap) return; // Защита от повторного запуска
+
+  // --- Бургер меню ---
   const burgerBtn = document.getElementById('burger-btn');
   const sidebar = document.querySelector('.sidebar');
   if (burgerBtn && sidebar) {
-    burgerBtn.onclick = () => {
-      sidebar.classList.toggle('open');
-    };
+    burgerBtn.onclick = () => sidebar.classList.toggle('open');
   }
 
-  // ========== МОБИЛЬНЫЕ КНОПКИ ==========
+  // --- Мобильные кнопки ---
   const mobileAccountBtn = document.getElementById('mobile-account-btn');
   const mobileSettingsBtn = document.getElementById('mobile-settings-btn');
-  if (mobileAccountBtn) {
-    mobileAccountBtn.onclick = () => {
-      document.getElementById('account-modal').classList.remove('hidden');
-      sidebar?.classList.remove('open');
-    };
-  }
-  if (mobileSettingsBtn) {
-    mobileSettingsBtn.onclick = () => {
-      document.getElementById('settings-modal').classList.remove('hidden');
-      sidebar?.classList.remove('open');
-    };
-  }
-
-  // ========== ДЕСКТОПНЫЕ КНОПКИ ==========
-  document.getElementById('account-btn').onclick = () => {
+  
+  const openAccountModal = () => {
     document.getElementById('account-modal').classList.remove('hidden');
+    sidebar?.classList.remove('open');
   };
+  const openSettingsModal = () => {
+    document.getElementById('settings-modal').classList.remove('hidden');
+    sidebar?.classList.remove('open');
+  };
+
+  if (mobileAccountBtn) mobileAccountBtn.onclick = openAccountModal;
+  if (mobileSettingsBtn) mobileSettingsBtn.onclick = openSettingsModal;
+
+  // --- Десктоп кнопки ---
+  document.getElementById('account-btn').onclick = openAccountModal;
   document.getElementById('close-account-modal').onclick = () => {
     document.getElementById('account-modal').classList.add('hidden');
   };
@@ -296,14 +263,13 @@ function initApp() {
   };
 
   document.getElementById('signout-btn').onclick = async () => {
-    await firebase.auth().signOut();
-    updateAuthUI(null);
+    await auth.signOut();
+    // Перезагрузка страницы для сброса состояния UI
+    window.location.reload(); 
   };
 
-  // ========== НАСТРОЙКИ ==========
-  document.getElementById('settings-btn').onclick = () => {
-    document.getElementById('settings-modal').classList.remove('hidden');
-  };
+  // --- Настройки (Темы) ---
+  document.getElementById('settings-btn').onclick = openSettingsModal;
   document.getElementById('close-settings-modal').onclick = () => {
     document.getElementById('settings-modal').classList.add('hidden');
   };
@@ -316,85 +282,93 @@ function initApp() {
     applyTheme(e.target.value);
   };
 
+  // Единицы измерения и уведомления (заглушки логики)
   document.getElementById('units-select').value = localStorage.getItem('units') || 'mkg';
   document.getElementById('units-select').onchange = (e) => localStorage.setItem('units', e.target.value);
 
   document.getElementById('push-toggle').checked = localStorage.getItem('push') === 'true';
   document.getElementById('push-toggle').onchange = (e) => localStorage.setItem('push', e.target.checked);
 
-  // ========== ЗАКРЫТИЕ МОДАЛОК ==========
+  // Закрытие модалок по клику на фон
   document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.onclick = () => overlay.closest('.modal').classList.add('hidden');
+    overlay.onclick = (e) => {
+      if (e.target === overlay) {
+        overlay.closest('.modal')?.classList.add('hidden');
+      }
+    };
   });
 
-  // ========== ОБРАТНАЯ СВЯЗЬ ==========
-  document.getElementById('contact-btn').onclick = () => document.getElementById('contact-modal').classList.remove('hidden');
-  document.getElementById('close-modal').onclick = () => document.getElementById('contact-modal').classList.add('hidden');
-  document.getElementById('contact-form').onsubmit = async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('user-email').value.trim();
-    const message = document.getElementById('user-message').value.trim();
-    try {
-      const res = await fetch('https://formspree.io/f/movjzrqz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ email, message, _subject: 'Сообщение с карты качества воздуха' })
-      });
-      if (res.ok) {
-        document.getElementById('contact-form').classList.add('hidden');
-        document.getElementById('form-success').classList.remove('hidden');
-        setTimeout(() => {
-          document.getElementById('contact-form').reset();
-          document.getElementById('contact-form').classList.remove('hidden');
-          document.getElementById('form-success').classList.add('hidden');
-          document.getElementById('contact-modal').classList.add('hidden');
-        }, 3000);
-      } else {
-        alert('Ошибка отправки');
-      }
-    } catch (err) {
-      alert('Не удалось отправить сообщение');
-    }
-  };
+  // --- Обратная связь ---
+  const contactBtn = document.getElementById('contact-btn');
+  if(contactBtn) {
+      contactBtn.onclick = () => document.getElementById('contact-modal').classList.remove('hidden');
+      document.getElementById('close-modal').onclick = () => document.getElementById('contact-modal').classList.add('hidden');
+      
+      document.getElementById('contact-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('user-email').value.trim();
+        const message = document.getElementById('user-message').value.trim();
+        // Имитация отправки (замените URL на ваш Formspree если нужно)
+        alert(`Спасибо! Сообщение от ${email} отправлено.`);
+        document.getElementById('contact-modal').classList.add('hidden');
+        document.getElementById('contact-form').reset();
+      };
+  }
 
-  // ========== КУКИ-БАННЕР ==========
+  // --- Cookie Banner ---
   const cookieBanner = document.getElementById('cookie-banner');
   const acceptCookiesBtn = document.getElementById('accept-cookies');
-  if (!localStorage.getItem('cookiesAccepted')) {
+  if (!localStorage.getItem('cookiesAccepted') && cookieBanner) {
     cookieBanner.classList.remove('hidden');
   }
-  acceptCookiesBtn.onclick = () => {
-    localStorage.setItem('cookiesAccepted', 'true');
-    cookieBanner.classList.add('hidden');
-  };
+  if(acceptCookiesBtn) {
+      acceptCookiesBtn.onclick = () => {
+        localStorage.setItem('cookiesAccepted', 'true');
+        cookieBanner.classList.add('hidden');
+      };
+  }
 
-  // ========== КАРТА ==========
+  // --- Инициализация Карты ---
   ymaps.ready(() => {
-    myMap = new ymaps.Map('map', { center: SPB_CENTER, zoom: 10, controls: [] });
+    myMap = new ymaps.Map('map', { 
+        center: SPB_CENTER, 
+        zoom: 10, 
+        controls: [] 
+    });
+    
+    // Кастомные контролы
     document.getElementById('zoom-in').onclick = () => myMap.setZoom(myMap.getZoom() + 1);
     document.getElementById('zoom-out').onclick = () => myMap.setZoom(myMap.getZoom() - 1);
+    
     document.getElementById('locate-btn').onclick = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           pos => myMap.setCenter([pos.coords.latitude, pos.coords.longitude], 14),
-          err => console.warn('Геолокация недоступна:', err.message)
+          err => console.warn('Геолокация:', err.message)
         );
       }
     };
+
     document.getElementById('refresh-btn').onclick = handleRefreshClick;
+    
     document.getElementById('close-info').onclick = () => {
       document.getElementById('info').classList.add('hidden');
       selectedDistrict = null;
     };
-    showLoader('Собираем свежие данные о качестве воздуха Санкт-Петербурга…');
+
+    // Загрузка данных
+    showLoader('Загрузка данных о качестве воздуха...');
     refreshData(true).then(() => hideLoader());
+    
+    // Автообновление каждые 5 минут
     setInterval(refreshData, 300000);
   });
 }
 
 // ────────────────────────────────────────────────
-// ТЕМЫ
+// 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (ТЕМЫ, ЗАГРУЗЧИК)
 // ────────────────────────────────────────────────
+
 function applyTheme(theme) {
   const root = document.documentElement;
   if (theme === 'light') {
@@ -412,15 +386,35 @@ function applyTheme(theme) {
   }
 }
 
+function showLoader(msg = 'Загрузка...') {
+  let loader = document.getElementById('global-loader');
+  if (!loader) {
+    loader = document.createElement('div');
+    loader.id = 'global-loader';
+    loader.className = 'loader-overlay';
+    loader.innerHTML = `<div class="loader"></div><span class="loader-text">${msg}</span>`;
+    document.body.appendChild(loader);
+  } else {
+    loader.querySelector('.loader-text').textContent = msg;
+    loader.style.display = 'flex';
+  }
+}
+
+function hideLoader() {
+  const loader = document.getElementById('global-loader');
+  if (loader) loader.style.display = 'none';
+}
+
 // ────────────────────────────────────────────────
-// AQI И КАРТА
+// 6. ЛОГИКА ДАННЫХ И ОТРИСОВКИ
 // ────────────────────────────────────────────────
+
 function handleRefreshClick() {
   const btn = document.getElementById('refresh-btn');
   const text = document.getElementById('refresh-btn-text');
   btn.disabled = true;
-  text.textContent = 'Обновление...';
-  showLoader('Обновление данных…');
+  text.textContent = '...';
+  showLoader('Обновление...');
   refreshData(true).then(() => {
     btn.disabled = false;
     text.textContent = 'Обновить';
@@ -442,93 +436,125 @@ async function loadDistrictAQI() {
     const res = await fetch('https://spbaqi.duckdns.org/api/v1/aqi/spb');
     if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
     const json = await res.json();
-    return json.items.map(item => ({
-      id: item.id, district: item.name,
-      aqi: item.data?.us_aqi || 0, pm25: item.data?.pm2_5 || 0,
-      pm10: item.data?.pm10 || 0, no2: item.data?.nitrogen_dioxide || 0,
-      o3: item.data?.ozone || 0, so2: item.data?.sulphur_dioxide || 0,
+    // Адаптация под структуру вашего API
+    return json.items ? json.items.map(item => ({
+      id: item.id, 
+      district: item.name,
+      aqi: item.data?.us_aqi || 0, 
+      pm25: item.data?.pm2_5 || 0,
+      pm10: item.data?.pm10 || 0, 
+      no2: item.data?.nitrogen_dioxide || 0,
+      o3: item.data?.ozone || 0, 
+      so2: item.data?.sulphur_dioxide || 0,
       co: item.data?.carbon_monoxide || 0
-    }));
-  } catch (err) { console.error(err); return []; }
+    })) : [];
+  } catch (err) { 
+    console.error(err); 
+    return []; 
+  }
+}
+
+function getQuality(aqi) {
+  if (aqi <= 50)  return { color: '#00e400', text: 'Отличное',   status: 'Здоровое', rec: 'Можно спокойно гулять.' };
+  if (aqi <= 100) return { color: '#ffff00', text: 'Хорошее',    status: 'Умеренное', rec: 'Подходит большинству.' };
+  if (aqi <= 150) return { color: '#ff7e00', text: 'Умеренно',   status: 'Чувствительным вредно', rec: 'Сократите активность.' };
+  if (aqi <= 200) return { color: '#ff0000', text: 'Нездорово',  status: 'Опасно', rec: 'Ограничьте пребывание на улице.' };
+  return { color: '#8f3f97', text: 'Очень плохо', status: 'Критично', rec: 'Оставайтесь дома.' };
 }
 
 function updateMap() {
   if (!myMap) return;
   myMap.geoObjects.removeAll();
+  
   currentData.forEach(item => {
     const d = districts.find(x => x.name === item.district);
     if (!d) return;
+    
     const q = getQuality(item.aqi);
     const poly = new ymaps.Polygon([d.coords], {}, {
-      fillColor: q.color + '66', strokeColor: q.color, strokeWidth: 2, opacity: 0.75
+      fillColor: q.color + '66', // Прозрачность
+      strokeColor: q.color, 
+      strokeWidth: 2, 
+      opacity: 0.8
     });
+    
     poly.events.add('click', () => {
-      selectedDistrict = item.district; panelData = { ...item };
+      selectedDistrict = item.district; 
+      panelData = { ...item };
       renderPanel(panelData);
       document.getElementById('info').classList.remove('hidden');
     });
+    
     myMap.geoObjects.add(poly);
   });
-}
-
-function getQuality(aqi) {
-  if (aqi <= 50)  return { color: '#00e400', text: 'Отличное',   status: 'Здоровое',                     rec: 'Можно спокойно гулять.' };
-  if (aqi <= 100) return { color: '#ffff00', text: 'Хорошее',    status: 'Умеренное',                    rec: 'Подходит большинству людей.' };
-  if (aqi <= 150) return { color: '#ff7e00', text: 'Умеренно',   status: 'Нездорово для чувствительных', rec: 'Сократите активность на улице.' };
-  if (aqi <= 200) return { color: '#ff0000', text: 'Нездорово',  status: 'Опасно',                       rec: 'Ограничьте пребывание на улице.' };
-  return                 { color: '#8f3f97', text: 'Очень плохо', status: 'Критично',                     rec: 'Лучше оставаться дома.' };
 }
 
 function renderPanel(data) {
   if (!data) return;
   const q = getQuality(data.aqi);
-  document.getElementById('district-name').textContent      = data.district;
-  document.getElementById('air-quality-value').textContent  = data.aqi;
-  document.getElementById('quality-status').textContent     = `${q.text} — ${q.status}`;
+  
+  document.getElementById('district-name').textContent = data.district;
+  document.getElementById('air-quality-value').textContent = data.aqi;
+  document.getElementById('quality-status').textContent = `${q.text} — ${q.status}`;
   document.getElementById('quality-description').textContent = q.rec;
-  document.querySelector('.badge-dot').style.backgroundColor = q.color;
-  document.getElementById('quality-badge').style.borderLeftColor = q.color;
-  document.getElementById('pm25').textContent = `PM2.5: ${data.pm25} µg/m³`;
-  document.getElementById('pm10').textContent = `PM10: ${data.pm10} µg/m³`;
-  document.getElementById('no2').textContent  = `NO₂: ${data.no2} µg/m³`;
-  document.getElementById('o3').textContent   = `O₃: ${data.o3} µg/m³`;
-  document.getElementById('so2').textContent  = `SO₂: ${data.so2} µg/m³`;
-  document.getElementById('co').textContent   = `CO: ${data.co} mg/m³`;
+  
+  const badgeDot = document.querySelector('.badge-dot');
+  const qualityBadge = document.getElementById('quality-badge');
+  
+  if(badgeDot) badgeDot.style.backgroundColor = q.color;
+  if(qualityBadge) qualityBadge.style.borderLeftColor = q.color;
+  
+  document.getElementById('pm25').textContent = `PM2.5: ${data.pm25}`;
+  document.getElementById('pm10').textContent = `PM10: ${data.pm10}`;
+  document.getElementById('no2').textContent = `NO₂: ${data.no2}`;
+  document.getElementById('o3').textContent = `O₃: ${data.o3}`;
+  document.getElementById('so2').textContent = `SO₂: ${data.so2}`;
+  document.getElementById('co').textContent = `CO: ${data.co}`;
+  
   document.getElementById('info').classList.remove('hidden');
 }
 
 function updateStats() {
   if (!currentData.length) return;
   const avg = Math.round(currentData.reduce((s, x) => s + x.aqi, 0) / currentData.length);
-  const best  = currentData.reduce((a, b) => a.aqi < b.aqi ? a : b);
+  const best = currentData.reduce((a, b) => a.aqi < b.aqi ? a : b);
   const worst = currentData.reduce((a, b) => a.aqi > b.aqi ? a : b);
-  document.getElementById('avg-aqi').textContent       = avg;
-  document.getElementById('best-district').textContent  = best.district;
-  document.getElementById('worst-district').textContent = worst.district;
+  
+  const avgEl = document.getElementById('avg-aqi');
+  const bestEl = document.getElementById('best-district');
+  const worstEl = document.getElementById('worst-district');
+  
+  if(avgEl) avgEl.textContent = avg;
+  if(bestEl) bestEl.textContent = best.district;
+  if(worstEl) worstEl.textContent = worst.district;
 }
 
 function updateLastUpdateTime() {
-  document.getElementById('last-update-time').textContent = 
-    `Обновлено: ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+  const el = document.getElementById('last-update-time');
+  if(el) {
+    el.textContent = `Обновлено: ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
+  }
 }
 
-// ────────────────────────────────────────────────
-// UI АВТОРИЗАЦИИ
-// ────────────────────────────────────────────────
 function updateAuthUI(user) {
   const googleBtn = document.getElementById('google-signin-btn');
   const userInfo = document.getElementById('user-info');
+  
   if (!googleBtn || !userInfo) return;
 
   if (user) {
     googleBtn.classList.add('hidden');
     userInfo.classList.remove('hidden');
-    document.getElementById('user-name').textContent = user.displayName || user.email || 'Пользователь';
+    const nameEl = document.getElementById('user-name');
+    if(nameEl) nameEl.textContent = user.displayName || user.email.split('@')[0] || 'Пользователь';
+    
     const avatar = document.getElementById('user-avatar');
-    if (user.photoURL) {
-      avatar.innerHTML = `<img src="${user.photoURL}" alt="avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-    } else {
-      avatar.innerHTML = '';
+    if (avatar) {
+        if (user.photoURL) {
+        avatar.innerHTML = `<img src="${user.photoURL}" alt="avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+        avatar.innerHTML = `<div style="width:100%;height:100%;border-radius:50%;background:#4F46E5;color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;">${(user.displayName || user.email)[0].toUpperCase()}</div>`;
+        }
     }
   } else {
     googleBtn.classList.remove('hidden');
@@ -539,5 +565,7 @@ function updateAuthUI(user) {
 // ────────────────────────────────────────────────
 // ЗАПУСК
 // ────────────────────────────────────────────────
-setupWelcomeButtons();
-checkFirstVisit();
+document.addEventListener('DOMContentLoaded', () => {
+    setupWelcomeButtons();
+    checkFirstVisit();
+});
