@@ -651,20 +651,135 @@ input:checked + .toggle-slider:before {
 /* ────────────────────────────────────────────────
    ЭКРАН ПРИВЕТСТВИЯ
    ──────────────────────────────────────────────── */
-#welcome-modal .modal-content {
+.welcome-modal-content {
   text-align: center;
+  padding: 40px 32px;
 }
 
-#register-form.hidden {
-  display: none;
+.welcome-header {
+  margin-bottom: 24px;
 }
 
-#welcome-buttons.hidden {
+.welcome-logo {
+  color: var(--accent);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.welcome-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-card);
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.auth-tab:hover {
+  color: var(--text-primary);
+}
+
+.auth-tab.active {
+  background: var(--accent);
+  color: white;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form .form-group {
+  text-align: left;
+}
+
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 8px 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--bg-card);
+}
+
+.divider span {
+  background: var(--bg-secondary);
+  padding: 0 12px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  position: relative;
+}
+
+.guest-link {
+  margin-top: 8px;
+}
+
+.guest-btn {
+  background: transparent;
+  border: 1px solid var(--bg-card);
+  color: var(--text-secondary);
+  padding: 10px 16px;
+  border-radius: var(--border-radius);
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.guest-btn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.auth-error {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.auth-error.hidden {
   display: none;
 }
 
 #reg-email:focus,
-#reg-password:focus {
+#reg-password:focus,
+#reg-confirm-password:focus,
+#login-email:focus,
+#login-password:focus {
   outline: none;
   border-color: var(--accent);
 }

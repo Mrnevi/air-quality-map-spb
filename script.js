@@ -92,6 +92,7 @@ firebase.auth().onAuthStateChanged(user => updateAuthUI(user));
 function checkFirstVisit() {
   if (!localStorage.getItem('hasVisited')) {
     document.getElementById('welcome-modal').classList.remove('hidden');
+    showAuthTab('login');
   } else {
     document.getElementById('welcome-modal').classList.add('hidden');
     initApp();
@@ -99,10 +100,65 @@ function checkFirstVisit() {
 }
 
 // ────────────────────────────────────────────────
+// ТАБЫ АВТОРИЗАЦИИ
+// ────────────────────────────────────────────────
+function showAuthTab(tab) {
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const tabs = document.querySelectorAll('.auth-tab');
+  
+  tabs.forEach(t => t.classList.remove('active'));
+  
+  if (tab === 'login') {
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+    document.querySelector('[data-tab="login"]').classList.add('active');
+  } else {
+    loginForm.classList.add('hidden');
+    registerForm.classList.remove('hidden');
+    document.querySelector('[data-tab="register"]').classList.add('active');
+  }
+  
+  hideAuthError();
+}
+
+function hideAuthError() {
+  const errorEl = document.getElementById('auth-error');
+  if (errorEl) errorEl.classList.add('hidden');
+}
+
+function showAuthError(message) {
+  const errorEl = document.getElementById('auth-error');
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.classList.remove('hidden');
+  }
+}
+
+// ────────────────────────────────────────────────
 // КНОПКИ ПРИВЕТСТВИЯ
 // ────────────────────────────────────────────────
 function setupWelcomeButtons() {
-  document.getElementById('welcome-google-btn').onclick = async () => {
+  // Табы вход/регистрация
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      showAuthTab(tab.dataset.tab);
+    });
+  });
+  
+  // Вход через Google (в форме логина)
+  document.getElementById('login-google-btn').onclick = async () => {
+    const user = await signInWithGoogle();
+    if (user) {
+      localStorage.setItem('hasVisited', 'true');
+      localStorage.setItem('authMode', 'google');
+      document.getElementById('welcome-modal').classList.add('hidden');
+      initApp();
+    }
+  };
+  
+  // Регистрация через Google (в форме регистрации)
+  document.getElementById('register-google-btn').onclick = async () => {
     const user = await signInWithGoogle();
     if (user) {
       localStorage.setItem('hasVisited', 'true');
@@ -112,20 +168,54 @@ function setupWelcomeButtons() {
     }
   };
 
-  document.getElementById('welcome-register-btn').onclick = () => {
-    document.getElementById('welcome-buttons').classList.add('hidden');
-    document.getElementById('register-form').classList.remove('hidden');
+  // Вход по email
+  document.getElementById('submit-login').onclick = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) {
+      showAuthError('Заполните все поля');
+      return;
+    }
+    try {
+      await firebase.auth().signInWithEmailAndPassword(email, password);
+      localStorage.setItem('hasVisited', 'true');
+      localStorage.setItem('authMode', 'email');
+      document.getElementById('welcome-modal').classList.add('hidden');
+      initApp();
+    } catch (e) {
+      let errorMsg = 'Ошибка входа';
+      if (e.code === 'auth/user-not-found') {
+        errorMsg = 'Пользователь не найден. Зарегистрируйтесь.';
+      } else if (e.code === 'auth/wrong-password') {
+        errorMsg = 'Неверный пароль';
+      } else if (e.code === 'auth/invalid-email') {
+        errorMsg = 'Некорректный email';
+      } else {
+        errorMsg = e.message;
+      }
+      showAuthError(errorMsg);
+    }
   };
 
-  document.getElementById('cancel-register').onclick = () => {
-    document.getElementById('register-form').classList.add('hidden');
-    document.getElementById('welcome-buttons').classList.remove('hidden');
-  };
-
+  // Регистрация по email
   document.getElementById('submit-register').onclick = async () => {
     const email = document.getElementById('reg-email').value.trim();
     const password = document.getElementById('reg-password').value;
-    if (!email || !password) { alert('Заполните все поля'); return; }
+    const confirmPassword = document.getElementById('reg-confirm-password').value;
+    
+    if (!email || !password) {
+      showAuthError('Заполните все поля');
+      return;
+    }
+    if (password.length < 6) {
+      showAuthError('Пароль должен быть минимум 6 символов');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showAuthError('Пароли не совпадают');
+      return;
+    }
+    
     try {
       await firebase.auth().createUserWithEmailAndPassword(email, password);
       localStorage.setItem('hasVisited', 'true');
@@ -133,13 +223,30 @@ function setupWelcomeButtons() {
       document.getElementById('welcome-modal').classList.add('hidden');
       initApp();
     } catch (e) {
-      alert('Ошибка регистрации: ' + e.message);
+      let errorMsg = 'Ошибка регистрации';
+      if (e.code === 'auth/email-already-in-use') {
+        errorMsg = 'Email уже зарегистрирован. Войдите.';
+      } else if (e.code === 'auth/weak-password') {
+        errorMsg = 'Слабый пароль (минимум 6 символов)';
+      } else if (e.code === 'auth/invalid-email') {
+        errorMsg = 'Некорректный email';
+      } else {
+        errorMsg = e.message;
+      }
+      showAuthError(errorMsg);
     }
   };
 
-  document.getElementById('welcome-guest-btn').onclick = () => {
+  // Продолжить как гость
+  document.getElementById('login-guest-btn').onclick = () => {
     localStorage.setItem('hasVisited', 'true');
     localStorage.setItem('authMode', 'guest');
+    document.getElementById('welcome-modal').classList.add('hidden');
+    initApp();
+  };
+  
+  // Закрытие модального окна
+  document.getElementById('close-welcome-modal').onclick = () => {
     document.getElementById('welcome-modal').classList.add('hidden');
     initApp();
   };
