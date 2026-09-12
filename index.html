@@ -1,146 +1,133 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Карта качества воздуха — Санкт-Петербург</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ&lang=ru_RU" type="text/javascript"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Качество воздуха СПб</title>
+    <!-- Yandex Maps API -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ&lang=ru_RU" type="text/javascript"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <!-- Мобильный верхний бар -->
-  <div class="mobile-top-bar">
-    <button class="burger-btn" id="burger-btn" title="Меню">
-      <span></span>
-      <span></span>
-      <span></span>
-    </button>
-    <div class="mobile-logo">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-0.5 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/></svg>
-      <span class="mobile-title">EcoScan SPb</span>
-    </div>
-    <div class="mobile-actions">
-      <button id="mobile-account-btn" class="icon-btn" title="Аккаунт">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>
-      </button>
-      <button id="mobile-settings-btn" class="icon-btn" title="Настройки">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c0.04-0.3 0.06-0.61 0.06-0.94 0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14 0.23-0.41 0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39 0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4 2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24 0-0.43 0.17-0.47 0.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.29L5.24 5.33c-0.22-0.08-0.47 0-0.59 0.22L2.74 8.87C2.62 9.08 2.66 9.34 2.86 9.48l2.03 1.58C4.84 11.36 4.8 11.69 4.8 12s0.02 0.64 0.07 0.94l-2.03 1.58c-0.18 0.14-0.23 0.41-0.12 0.61l1.92 3.32c0.12 0.22 0.37 0.29 0.59 0.22l2.39-0.96c0.5 0.38 1.03 0.7 1.62 0.94l0.36 2.54c0.05 0.24 0.24 0.41 0.48 0.41h3.84c0.24 0 0.44-0.17 0.47-0.41l0.36-2.54c0.59-0.24 1.13-0.56 1.62-0.94l2.39 0.96c0.22 0.08 0.47 0 0.59-0.22l1.92-3.32c0.12-0.22 0.07-0.47-0.12-0.61L19.14 12.94zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6S13.98 15.6 12 15.6z" fill="currentColor"/></svg>
-      </button>
-    </div>
-  </div>
 
-  <div class="app-container">
-    <!-- Боковая панель -->
-    <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="logo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-0.5 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/></svg>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <span class="logo-icon">🌿</span>
+                <h1>AirQuality SPb</h1>
+            </div>
+            <div class="user-panel" id="userPanel">
+                <!-- Сюда будет вставляться информация о пользователе или кнопка входа -->
+                <button class="btn btn-outline" id="loginBtn">Войти</button>
+            </div>
         </div>
-        <h1 class="app-title">Air Quality SPb</h1>
-        <button id="account-btn" class="icon-btn" title="Аккаунт">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" fill="currentColor"/></svg>
-        </button>
-        <button id="settings-btn" class="icon-btn" title="Настройки">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19.14 12.94c0.04-0.3 0.06-0.61 0.06-0.94 0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14 0.23-0.41 0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39 0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4 2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24 0-0.43 0.17-0.47 0.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.29L5.24 5.33c-0.22-0.08-0.47 0-0.59 0.22L2.74 8.87C2.62 9.08 2.66 9.34 2.86 9.48l2.03 1.58C4.84 11.36 4.8 11.69 4.8 12s0.02 0.64 0.07 0.94l-2.03 1.58c-0.18 0.14-0.23 0.41-0.12 0.61l1.92 3.32c0.12 0.22 0.37 0.29 0.59 0.22l2.39-0.96c0.5 0.38 1.03 0.7 1.62 0.94l0.36 2.54c0.05 0.24 0.24 0.41 0.48 0.41h3.84c0.24 0 0.44-0.17 0.47-0.41l0.36-2.54c0.59-0.24 1.13-0.56 1.62-0.94l2.39 0.96c0.22 0.08 0.47 0 0.59-0.22l1.92-3.32c0.12-0.22 0.07-0.47-0.12-0.61L19.14 12.94zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6S13.98 15.6 12 15.6z" fill="currentColor"/></svg>
-        </button>
-      </div>
-      
-      <div class="search-box">
-        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15.5 14h-0.79l-0.28-0.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-0.59 4.23-1.57l0.27 0.28v0.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
-        <input type="text" placeholder="Поиск района..." class="search-input">
-      </div>
+    </header>
 
-      <div class="stats-grid">
-        <div class="stat-card"><span class="stat-label">Средний AQI</span><span class="stat-value" id="avg-aqi">--</span></div>
-        <div class="stat-card"><span class="stat-label">Лучший воздух</span><span class="stat-value" id="best-district">--</span></div>
-        <div class="stat-card"><span class="stat-label">Худший воздух</span><span class="stat-value" id="worst-district">--</span></div>
-      </div>
-
-      <div class="legend">
-        <div class="legend-item"><span class="color-dot" style="background:#00e400"></span> 0-50 Хорошо</div>
-        <div class="legend-item"><span class="color-dot" style="background:#ffff00"></span> 51-100 Умеренно</div>
-        <div class="legend-item"><span class="color-dot" style="background:#ff7e00"></span> 101-150 Вредно для чувств.</div>
-        <div class="legend-item"><span class="color-dot" style="background:#ff0000"></span> 151-200 Нездоровый</div>
-        <div class="legend-item"><span class="color-dot" style="background:#8f3f97"></span> 200+ Очень плохой</div>
-      </div>
-
-      <div class="sidebar-footer">
-        <span id="last-update-time" class="update-time">Загрузка...</span>
-        <button id="refresh-btn" class="btn btn-primary">
-          <span id="refresh-btn-text">Обновить</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-0.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14 0.69 4.22 1.78L13 10h7V3l-2.35 2.35z" fill="currentColor"/></svg>
-        </button>
-      </div>
-
-      <div class="privacy-link-container">
-        <a href="privacy.html" target="_blank" class="privacy-link">Политика конфиденциальности</a>
-      </div>
-    </aside>
-
-    <!-- Основная область с картой -->
-    <main class="map-container">
-      <div id="map" class="map"></div>
-      <div class="map-controls">
-        <button id="zoom-in" class="map-ctrl-btn" title="Приблизить"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor"/></svg></button>
-        <button id="zoom-out" class="map-ctrl-btn" title="Отдалить"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M19 13H5v-2h14v2z" fill="currentColor"/></svg></button>
-        <button id="locate-btn" class="map-ctrl-btn" title="Моё местоположение"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-0.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c0.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-0.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg></button>
-      </div>
-
-      <div id="info" class="info-panel hidden">
-        <div class="info-header"><h2 id="district-name" class="district-name"></h2><button id="close-info" class="close-button"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg></button></div>
-        <div class="info-content">
-          <div id="quality-badge" class="quality-badge"><span class="badge-dot"></span><span id="quality-status" class="quality-status"></span></div>
-          <div class="aqi-value-row"><span id="air-quality-value" class="aqi-value"></span><span class="aqi-label">AQI</span></div>
-          <p id="quality-description" class="quality-desc"></p>
-          <div class="pollutants-grid" id="pollutants-grid">
-            <span id="pm25" class="pollutant-item">PM2.5: --</span>
-            <span id="pm10" class="pollutant-item">PM10: --</span>
-            <span id="no2" class="pollutant-item">NO₂: --</span>
-            <span id="o3" class="pollutant-item">O₃: --</span>
-            <span id="so2" class="pollutant-item">SO₂: --</span>
-            <span id="co" class="pollutant-item">CO: --</span>
-          </div>
+    <!-- Main Content -->
+    <main class="main-container">
+        <div class="map-wrapper">
+            <div id="map" class="map"></div>
+            
+            <!-- Info Card (Floating on Mobile, Side on Desktop) -->
+            <div class="info-card" id="infoCard">
+                <div class="card-header">
+                    <h2 id="districtName">Выберите район</h2>
+                    <span class="aqi-badge" id="aqiBadge">--</span>
+                </div>
+                <div class="card-body">
+                    <div class="status-text" id="statusText">Загрузка данных...</div>
+                    <div class="pollutants-grid">
+                        <div class="pollutant-item">
+                            <span class="label">PM2.5</span>
+                            <span class="value" id="pm25">--</span>
+                        </div>
+                        <div class="pollutant-item">
+                            <span class="label">PM10</span>
+                            <span class="value" id="pm10">--</span>
+                        </div>
+                        <div class="pollutant-item">
+                            <span class="label">NO₂</span>
+                            <span class="value" id="no2">--</span>
+                        </div>
+                        <div class="pollutant-item">
+                            <span class="label">O₃</span>
+                            <span class="value" id="o3">--</span>
+                        </div>
+                    </div>
+                    <div class="last-update">
+                        Обновлено: <span id="lastUpdate">--:--</span>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </main>
-  </div>
 
-  <!-- Модальное окно обратной связи -->
-  <div id="contact-modal" class="modal hidden"><div class="modal-overlay"></div><div class="modal-content"><button id="close-modal" class="modal-close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg></button><h2 class="modal-title">Связь с нами</h2><form id="contact-form" class="contact-form"><div class="form-group"><label for="user-email">Ваш Email</label><input type="email" id="user-email" required placeholder="your@email.com"></div><div class="form-group"><label for="user-message">Сообщение</label><textarea id="user-message" rows="4" required placeholder="Ваше сообщение..."></textarea></div><input type="hidden" id="to-email" value="ologorodov@yandex.ru"><button type="submit" class="btn btn-primary" style="width:100%">Отправить</button></form><div id="form-success" class="form-success hidden"><div class="success-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" fill="#00e400"/></svg></div><p>Сообщение отправлено! Мы свяжемся с вами по указанному адресу.</p></div></div></div>
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-window">
+            <button class="close-modal" id="closeModal">&times;</button>
+            
+            <div class="modal-tabs">
+                <button class="tab-btn active" data-tab="login">Вход</button>
+                <button class="tab-btn" data-tab="register">Регистрация</button>
+            </div>
 
-  <!-- Модальное окно настроек -->
-  <div id="settings-modal" class="modal hidden"><div class="modal-overlay"></div><div class="modal-content"><button id="close-settings-modal" class="modal-close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg></button><h2 class="modal-title">Настройки</h2><div class="settings-section"><h3>Внешний вид</h3><div class="setting-row"><span>Тема</span><select id="theme-select" class="setting-select"><option value="dark">Тёмная</option><option value="light">Светлая</option></select></div><div class="setting-row"><span>Единицы измерения</span><select id="units-select" class="setting-select"><option value="mkg">мкг/м³</option><option value="ppm">ppm</option></select></div></div><div class="settings-section"><h3>Уведомления</h3><div class="setting-row"><span>Push-уведомления</span><label class="toggle-switch"><input type="checkbox" id="push-toggle"><span class="toggle-slider"></span></label></div></div></div></div>
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form active-form">
+                <h3>С возвращением!</h3>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="example@mail.ru" required>
+                </div>
+                <div class="input-group">
+                    <label>Пароль</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Войти</button>
+                
+                <div class="divider"><span>или</span></div>
+                
+                <button type="button" class="btn btn-google btn-full" id="googleLoginBtn">
+                    Продолжить с Google
+                </button>
+                <button type="button" class="btn btn-guest btn-full" id="guestLoginBtn">
+                    Войти как гость
+                </button>
+                <div class="error-msg" id="loginError"></div>
+            </form>
 
-  <!-- Модальное окно аккаунта -->
-  <div id="account-modal" class="modal hidden"><div class="modal-overlay"></div><div class="modal-content" style="text-align:center;"><button id="close-account-modal" class="modal-close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg></button><h2 class="modal-title">Аккаунт</h2><div id="auth-area"><button id="google-signin-btn" class="btn google-btn" style="margin-bottom:12px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-0.78-0.07-1.53-0.2-2.25H12v4.26h5.92c-0.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-0.98 7.28-2.66l-3.57-2.77c-0.98 0.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-0.22-0.66-0.35-1.36-0.35-2.09s0.13-1.43 0.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s0.43 3.45 1.18 4.93l2.85-2.22 0.81-0.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06 0.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c0.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Войти через Google</button><div id="user-info" class="hidden"><div class="user-avatar" id="user-avatar"></div><span id="user-name" class="user-name"></span><button id="signout-btn" class="btn btn-secondary" style="margin-top:12px;width:100%;">Выйти</button></div></div></div></div>
+            <!-- Register Form -->
+            <form id="registerForm" class="auth-form">
+                <h3>Создать аккаунт</h3>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="regEmail" placeholder="example@mail.ru" required>
+                </div>
+                <div class="input-group">
+                    <label>Пароль</label>
+                    <input type="password" id="regPassword" placeholder="Минимум 6 символов" required minlength="6">
+                </div>
+                <div class="input-group">
+                    <label>Повторите пароль</label>
+                    <input type="password" id="regPasswordConfirm" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">Зарегистрироваться</button>
+                
+                <div class="divider"><span>или</span></div>
 
-  <!-- Модальное окно приветствия (первый вход) -->
-  <div id="welcome-modal" class="modal"><div class="modal-overlay"></div><div class="modal-content welcome-modal-content"><button id="close-welcome-modal" class="modal-close"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/></svg></button><div class="welcome-header"><div class="welcome-logo"><svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-0.5 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/></svg></div><h2 class="modal-title">Добро пожаловать в EcoScan SPb</h2><p class="welcome-subtitle">Следите за качеством воздуха Санкт-Петербурга в реальном времени</p></div><div class="auth-tabs"><button class="auth-tab active" data-tab="login">Вход</button><button class="auth-tab" data-tab="register">Регистрация</button></div><div id="login-form" class="auth-form"><div class="form-group"><label for="login-email">Email</label><input type="email" id="login-email" required placeholder="your@email.com"></div><div class="form-group"><label for="login-password">Пароль</label><input type="password" id="login-password" required placeholder="Ваш пароль"></div><button id="submit-login" class="btn btn-primary" style="width:100%">Войти</button><div class="divider"><span>или</span></div><button id="login-google-btn" class="btn google-btn" style="width:100%"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-0.78-0.07-1.53-0.2-2.25H12v4.26h5.92c-0.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-0.98 7.28-2.66l-3.57-2.77c-0.98 0.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-0.22-0.66-0.35-1.36-0.35-2.09s0.13-1.43 0.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s0.43 3.45 1.18 4.93l2.85-2.22 0.81-0.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06 0.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c0.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Войти через Google</button><div class="guest-link"><button id="login-guest-btn" class="guest-btn">Продолжить как гость</button></div></div><div id="register-form" class="auth-form hidden"><div class="form-group"><label for="reg-email">Email</label><input type="email" id="reg-email" required placeholder="your@email.com"></div><div class="form-group"><label for="reg-password">Пароль</label><input type="password" id="reg-password" required placeholder="Минимум 6 символов" minlength="6"></div><div class="form-group"><label for="reg-confirm-password">Подтвердите пароль</label><input type="password" id="reg-confirm-password" required placeholder="Повторите пароль"></div><button id="submit-register" class="btn btn-primary" style="width:100%">Зарегистрироваться</button><div class="divider"><span>или</span></div><button id="register-google-btn" class="btn google-btn" style="width:100%"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-0.78-0.07-1.53-0.2-2.25H12v4.26h5.92c-0.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-0.98 7.28-2.66l-3.57-2.77c-0.98 0.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-0.22-0.66-0.35-1.36-0.35-2.09s0.13-1.43 0.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s0.43 3.45 1.18 4.93l2.85-2.22 0.81-0.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06 0.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c0.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Зарегистрироваться через Google</button></div><div id="auth-error" class="auth-error hidden"></div></div></div>
-
-  <button id="contact-btn" class="fab-button" title="Связь с нами"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 2H4c-1.1 0-1.99 0.9-1.99 2L2 22l4-4h14c1.1 0 2-0.9 2-2V4c0-1.1-0.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z" fill="currentColor"/></svg></button>
-
-  <!-- Куки-баннер -->
-  <div id="cookie-banner" class="cookie-banner hidden">
-    <div class="cookie-content">
-      <div class="cookie-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
-        </svg>
-      </div>
-      <p class="cookie-text">
-        Мы используем файлы cookie и данные авторизации для улучшения работы сервиса. 
-        Продолжая использовать сайт, вы соглашаетесь с 
-        <a href="privacy.html" target="_blank" class="cookie-link">политикой конфиденциальности</a>.
-      </p>
-      <button id="accept-cookies" class="btn btn-primary">Принять</button>
+                <button type="button" class="btn btn-google btn-full" id="googleRegBtn">
+                    Продолжить с Google
+                </button>
+                <div class="error-msg" id="regError"></div>
+            </form>
+        </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
