@@ -2,571 +2,116 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Качество воздуха СПб</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Качество воздуха Санкт-Петербурга</title>
     
     <!-- Шрифты -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Yandex Maps API -->
-    <!-- ВАЖНО: Замените 'ваш_api_ключ' на реальный ключ, если карта не работает -->
-    <script src="https://api-maps.yandex.ru/2.1/?apikey=ваш_api_ключ&lang=ru_RU" type="text/javascript"></script>
+    <!-- Yandex Maps API (Вставьте свой ключ вместо заглушки, если текущий не работает) -->
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=4e3b7b8a-9c0d-4f5e-8a1b-2c3d4e5f6a7b&lang=ru_RU" type="text/javascript"></script>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
-    <style>
-        :root {
-            --bg-primary: #f3f4f6;
-            --bg-secondary: #ffffff;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --primary: #4F46E5;
-            --border: #e5e7eb;
-            --radius: 12px;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); height: 100vh; overflow: hidden; }
-
-        /* Header */
-        header { background: var(--bg-secondary); padding: 1rem; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; z-index: 10; position: relative; }
-        .logo { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
-        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-primary); }
-        
-        /* Map Container */
-        #map { width: 100%; height: calc(100vh - 70px); position: absolute; top: 70px; left: 0; }
-
-        /* Info Panel (Floating) */
-        .info-panel {
-            position: absolute; bottom: 20px; left: 20px; right: 20px;
-            background: var(--bg-secondary); padding: 1.5rem;
-            border-radius: var(--radius); box-shadow: var(--shadow);
-            max-width: 400px; z-index: 5; display: none;
-        }
-        .info-panel.active { display: block; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .aqi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .aqi-badge { padding: 4px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; color: white; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .stat-item { background: var(--bg-primary); padding: 8px; border-radius: 8px; font-size: 0.85rem; }
-        .close-panel { position: absolute; top: 10px; right: 10px; background: none; border: none; font-size: 1.2rem; cursor: pointer; }
-
-        /* Welcome Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-window { background: var(--bg-secondary); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 400px; position: relative; }
-        .hidden { display: none !important; }
-        
-        .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
-        .auth-tab { flex: 1; padding: 0.75rem; border: none; background: none; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
-        .auth-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
-        
-        .input-group { margin-bottom: 1rem; }
-        .input-group label { display: block; margin-bottom: 0.5rem; font-size: 0.9rem; }
-        .input-group input { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
-        
-        .divider { text-align: center; margin: 1.5rem 0; position: relative; color: var(--text-secondary); font-size: 0.85rem; }
-        .divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--border); z-index: -1; }
-        .divider span { background: var(--bg-secondary); padding: 0 10px; }
-
-        .error-msg { color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; text-align: center; min-height: 1.2rem; }
-        
-        /* Loader */
-        .loader-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 200; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 1rem; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Responsive */
-        @media (min-width: 768px) {
-            .info-panel { top: 80px; bottom: auto; left: 20px; right: auto; width: 350px; }
-        }
-    </style>
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- Header -->
+    <!-- Загрузочный экран -->
+    <div id="global-loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p class="loader-text">Загрузка карты...</p>
+    </div>
+
+    <!-- Шапка -->
     <header>
-        <div class="logo">🌿 AirQuality SPb</div>
-        <button id="account-btn" class="btn btn-outline">Войти</button>
-        <div id="user-info" class="hidden" style="display: flex; align-items: center; gap: 10px;">
-            <div id="user-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: #ddd;"></div>
-            <span id="user-name" style="font-weight: 500; font-size: 0.9rem;"></span>
-            <button id="signout-btn" class="btn" style="font-size: 0.8rem; color: #ef4444;">Выйти</button>
+        <div class="logo"><span>🌿</span> EcoSPb</div>
+        <div class="header-actions">
+            <div id="auth-trigger" class="btn-icon" title="Войти">👤</div>
+            <div id="user-display" class="user-avatar-sm hidden"></div>
         </div>
     </header>
 
-    <!-- Map -->
-    <div id="map"></div>
-
-    <!-- Info Panel -->
-    <div id="info" class="info-panel">
-        <button id="close-info" class="close-panel">&times;</button>
-        <div class="aqi-header">
-            <h2 id="district-name">Район</h2>
-            <span id="quality-badge" class="aqi-badge">--</span>
-        </div>
-        <p id="quality-status" style="font-weight: 600; margin-bottom: 5px;">Статус</p>
-        <p id="quality-description" style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 15px;">Описание</p>
+    <!-- Карта -->
+    <div id="map-container">
+        <div id="map"></div>
         
-        <div class="stats-grid">
-            <div class="stat-item" id="pm25">PM2.5: --</div>
-            <div class="stat-item" id="pm10">PM10: --</div>
-            <div class="stat-item" id="no2">NO₂: --</div>
-            <div class="stat-item" id="o3">O₃: --</div>
-            <div class="stat-item" id="so2">SO₂: --</div>
-            <div class="stat-item" id="co">CO: --</div>
-        </div>
-        <div style="margin-top: 15px; font-size: 0.75rem; color: var(--text-secondary); text-align: right;" id="last-update-time">
-            Обновлено: --:--
+        <!-- Плавающая панель -->
+        <div id="info-panel" class="info-panel">
+            <div class="panel-header">
+                <div>
+                    <div class="district-title" id="panel-district">Район</div>
+                    <div class="panel-status" id="panel-status">Загрузка...</div>
+                </div>
+                <button class="close-panel" onclick="closePanel()">×</button>
+            </div>
+            <div class="aqi-row">
+                <span class="aqi-badge" id="panel-aqi">--</span>
+                <span id="panel-desc"></span>
+            </div>
+            <div class="pollutants-grid">
+                <div class="pollutant-item"><span class="pollutant-label">PM2.5</span><span class="pollutant-val" id="val-pm25">--</span></div>
+                <div class="pollutant-item"><span class="pollutant-label">PM10</span><span class="pollutant-val" id="val-pm10">--</span></div>
+                <div class="pollutant-item"><span class="pollutant-label">NO₂</span><span class="pollutant-val" id="val-no2">--</span></div>
+                <div class="pollutant-item"><span class="pollutant-label">O₃</span><span class="pollutant-val" id="val-o3">--</span></div>
+            </div>
         </div>
     </div>
 
-    <!-- Welcome/Auth Modal -->
-    <div id="welcome-modal" class="modal-overlay hidden">
-        <div class="modal-window">
-            <h2 style="text-align: center; margin-bottom: 1.5rem;">Добро пожаловать</h2>
+    <!-- Модальное окно Авторизации -->
+    <div id="auth-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal-btn" onclick="toggleAuthModal(false)">×</button>
+            <h2 class="modal-title">Вход в систему</h2>
             
             <div class="auth-tabs">
-                <button class="auth-tab active" data-tab="login">Вход</button>
-                <button class="auth-tab" data-tab="register">Регистрация</button>
+                <div class="auth-tab active" data-tab="login">Вход</div>
+                <div class="auth-tab" data-tab="register">Регистрация</div>
             </div>
 
-            <!-- Login Form -->
-            <div id="login-form">
+            <!-- Форма входа -->
+            <div id="form-login">
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" id="login-email" placeholder="example@mail.ru">
+                    <input type="email" id="login-email" placeholder="name@example.com">
                 </div>
                 <div class="input-group">
                     <label>Пароль</label>
-                    <input type="password" id="login-password" placeholder="••••••••">
+                    <input type="password" id="login-pass" placeholder="••••••••">
                 </div>
-                <button id="submit-login" class="btn btn-primary" style="width: 100%;">Войти</button>
-                <div class="divider"><span>или</span></div>
-                <button id="login-google-btn" class="btn btn-outline" style="width: 100%;">Продолжить с Google</button>
-                <button id="login-guest-btn" class="btn" style="width: 100%; margin-top: 10px; color: var(--text-secondary); text-decoration: underline;">Продолжить как гость</button>
-                <div id="auth-error" class="error-msg hidden"></div>
+                <button class="btn-primary" onclick="handleLogin()">Войти</button>
+                <button class="btn-google" onclick="handleGoogleAuth()">
+                    Продолжить с Google
+                </button>
+                <button class="btn-guest" onclick="handleGuest()">Продолжить как гость</button>
+                <div id="login-error" class="error-msg"></div>
             </div>
 
-            <!-- Register Form -->
-            <div id="register-form" class="hidden">
+            <!-- Форма регистрации -->
+            <div id="form-register" class="hidden">
                 <div class="input-group">
                     <label>Email</label>
-                    <input type="email" id="reg-email" placeholder="example@mail.ru">
+                    <input type="email" id="reg-email" placeholder="name@example.com">
                 </div>
                 <div class="input-group">
                     <label>Пароль</label>
-                    <input type="password" id="reg-password" placeholder="Минимум 6 символов">
+                    <input type="password" id="reg-pass" placeholder="Минимум 6 символов">
                 </div>
                 <div class="input-group">
-                    <label>Повторите пароль</label>
-                    <input type="password" id="reg-confirm-password" placeholder="••••••••">
+                    <label>Повтор пароля</label>
+                    <input type="password" id="reg-pass-confirm" placeholder="••••••••">
                 </div>
-                <button id="submit-register" class="btn btn-primary" style="width: 100%;">Зарегистрироваться</button>
-                <div class="divider"><span>или</span></div>
-                <button id="register-google-btn" class="btn btn-outline" style="width: 100%;">Продолжить с Google</button>
-                <div id="auth-error-reg" class="error-msg hidden"></div>
+                <button class="btn-primary" onclick="handleRegister()">Зарегистрироваться</button>
+                <div id="reg-error" class="error-msg"></div>
             </div>
         </div>
     </div>
 
-    <!-- Global Loader -->
-    <div id="global-loader" class="loader-overlay hidden">
-        <div class="loader"></div>
-        <span class="loader-text">Загрузка данных...</span>
-    </div>
-
-    <script>
-        // ────────────────────────────────────────────────
-        // КОНФИГУРАЦИЯ
-        // ────────────────────────────────────────────────
-        const SPB_CENTER = [59.93428, 30.3351];
-        const districts = [
-          { "name": "Адмиралтейский", "coords": [[59.901, 30.250], [59.905, 30.360], [59.934, 30.355], [59.932, 30.270]] },
-          { "name": "Василеостровский", "coords": [[59.935, 30.198], [59.920, 30.260], [59.945, 30.290], [59.957, 30.210]] },
-          { "name": "Выборгский", "coords": [[59.975, 30.330], [60.030, 30.410], [60.100, 30.350], [60.060, 30.250]] },
-          { "name": "Калининский", "coords": [[59.957, 30.360], [59.980, 30.450], [60.052, 30.430], [60.020, 30.350]] },
-          { "name": "Кировский", "coords": [[59.800, 30.170], [59.840, 30.300], [59.915, 30.310], [59.910, 30.210]] },
-          { "name": "Колпинский", "coords": [[59.725, 30.550], [59.780, 30.760], [59.840, 30.650], [59.810, 30.490]] },
-          { "name": "Красногвардейский", "coords": [[59.925, 30.410], [59.940, 30.530], [60.010, 30.510], [59.980, 30.420]] },
-          { "name": "Красносельский", "coords": [[59.680, 30.080], [59.780, 30.220], [59.870, 30.170], [59.840, 30.050]] },
-          { "name": "Кронштадтский", "coords": [[60.010, 29.660], [59.980, 29.750], [60.000, 29.830], [60.035, 29.740]] },
-          { "name": "Курортный", "coords": [[60.000, 29.950], [60.100, 30.230], [60.250, 29.800], [60.150, 29.400]] },
-          { "name": "Московский", "coords": [[59.770, 30.310], [59.820, 30.400], [59.890, 30.360], [59.870, 30.280]] },
-          { "name": "Невский", "coords": [[59.835, 30.480], [59.880, 30.540], [59.925, 30.440], [59.890, 30.390]] },
-          { "name": "Петроградский", "coords": [[59.955, 30.220], [59.950, 30.340], [59.985, 30.330], [59.980, 30.240]] },
-          { "name": "Петродворцовый", "coords": [[59.850, 29.670], [59.870, 30.040], [59.920, 30.020], [59.900, 29.750]] },
-          { "name": "Приморский", "coords": [[59.980, 30.210], [60.020, 30.310], [60.120, 30.150], [60.050, 29.980]] },
-          { "name": "Пушкинский", "coords": [[59.630, 30.400], [59.720, 30.550], [59.820, 30.450], [59.780, 30.300]] },
-          { "name": "Фрунзенский", "coords": [[59.810, 30.380], [59.840, 30.440], [59.915, 30.380], [59.890, 30.330]] },
-          { "name": "Центральный", "coords": [[59.916, 30.330], [59.925, 30.400], [59.955, 30.390], [59.945, 30.320]] }
-        ];
-
-        let myMap;
-        let currentData = [];
-        let lastRefresh = 0;
-        let selectedDistrict = null;
-        let panelData = {};
-
-        // ────────────────────────────────────────────────
-        // ЗАГРУЗОЧНЫЙ ЭКРАН
-        // ────────────────────────────────────────────────
-        function showLoader(msg = 'Загрузка...') {
-          let loader = document.getElementById('global-loader');
-          if (!loader) return;
-          loader.querySelector('.loader-text').textContent = msg;
-          loader.classList.remove('hidden');
-          loader.style.display = 'flex';
-        }
-        function hideLoader() {
-          const loader = document.getElementById('global-loader');
-          if (loader) {
-              loader.classList.add('hidden');
-              loader.style.display = 'none';
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // FIREBASE
-        // ────────────────────────────────────────────────
-        firebase.initializeApp({
-          apiKey: "AIzaSyA0-bOVlO9jBxuWPiFk0VcqGjfwn-GGAUc",
-          authDomain: "ecoskan-spb.firebaseapp.com",
-          projectId: "ecoskan-spb",
-          storageBucket: "ecoskan-spb.firebasestorage.app",
-          messagingSenderId: "767312877187",
-          appId: "1:767312877187:web:1fd3759ab2e92ce942edb6"
-        });
-
-        // ────────────────────────────────────────────────
-        // ВХОД ЧЕРЕЗ GOOGLE
-        // ────────────────────────────────────────────────
-        async function signInWithGoogle() {
-          const provider = new firebase.auth.GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          try {
-            const result = await firebase.auth().signInWithPopup(provider);
-            return result.user;
-          } catch (error) {
-            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-              console.log('Окно входа закрыто');
-              return null;
-            }
-            console.error('Ошибка входа:', error);
-            return null;
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // СЛУШАТЕЛЬ АВТОРИЗАЦИИ
-        // ────────────────────────────────────────────────
-        firebase.auth().onAuthStateChanged(user => updateAuthUI(user));
-
-        // ────────────────────────────────────────────────
-        // ПЕРВЫЙ ВИЗИТ
-        // ────────────────────────────────────────────────
-        function checkFirstVisit() {
-          if (!localStorage.getItem('hasVisited')) {
-            document.getElementById('welcome-modal').classList.remove('hidden');
-            showAuthTab('login');
-          } else {
-            document.getElementById('welcome-modal').classList.add('hidden');
-            initApp();
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // ТАБЫ АВТОРИЗАЦИИ
-        // ────────────────────────────────────────────────
-        function showAuthTab(tab) {
-          const loginForm = document.getElementById('login-form');
-          const registerForm = document.getElementById('register-form');
-          const tabs = document.querySelectorAll('.auth-tab');
-          
-          tabs.forEach(t => t.classList.remove('active'));
-          
-          if (tab === 'login') {
-            loginForm.classList.remove('hidden');
-            registerForm.classList.add('hidden');
-            document.querySelector('[data-tab="login"]').classList.add('active');
-          } else {
-            loginForm.classList.add('hidden');
-            registerForm.classList.remove('hidden');
-            document.querySelector('[data-tab="register"]').classList.add('active');
-          }
-          
-          hideAuthError();
-        }
-
-        function hideAuthError() {
-          document.getElementById('auth-error').classList.add('hidden');
-          document.getElementById('auth-error-reg').classList.add('hidden');
-        }
-
-        function showAuthError(message, isReg = false) {
-          const id = isReg ? 'auth-error-reg' : 'auth-error';
-          const el = document.getElementById(id);
-          if (el) {
-            el.textContent = message;
-            el.classList.remove('hidden');
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // КНОПКИ ПРИВЕТСТВИЯ
-        // ────────────────────────────────────────────────
-        function setupWelcomeButtons() {
-          document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.addEventListener('click', () => showAuthTab(tab.dataset.tab));
-          });
-          
-          document.getElementById('login-google-btn').onclick = async () => {
-            const user = await signInWithGoogle();
-            if (user) finalizeLogin();
-          };
-          
-          document.getElementById('register-google-btn').onclick = async () => {
-            const user = await signInWithGoogle();
-            if (user) finalizeLogin();
-          };
-
-          document.getElementById('submit-login').onclick = async () => {
-            const email = document.getElementById('login-email').value.trim();
-            const password = document.getElementById('login-password').value;
-            if (!email || !password) { showAuthError('Заполните все поля'); return; }
-            try {
-              await firebase.auth().signInWithEmailAndPassword(email, password);
-              finalizeLogin();
-            } catch (e) {
-              let msg = 'Ошибка входа';
-              if (e.code === 'auth/user-not-found') msg = 'Пользователь не найден';
-              else if (e.code === 'auth/wrong-password') msg = 'Неверный пароль';
-              showAuthError(msg);
-            }
-          };
-
-          document.getElementById('submit-register').onclick = async () => {
-            const email = document.getElementById('reg-email').value.trim();
-            const password = document.getElementById('reg-password').value;
-            const confirm = document.getElementById('reg-confirm-password').value;
-            
-            if (!email || !password) { showAuthError('Заполните все поля', true); return; }
-            if (password.length < 6) { showAuthError('Пароль мин. 6 символов', true); return; }
-            if (password !== confirm) { showAuthError('Пароли не совпадают', true); return; }
-            
-            try {
-              await firebase.auth().createUserWithEmailAndPassword(email, password);
-              finalizeLogin();
-            } catch (e) {
-              let msg = 'Ошибка регистрации';
-              if (e.code === 'auth/email-already-in-use') msg = 'Email уже занят';
-              showAuthError(msg, true);
-            }
-          };
-
-          document.getElementById('login-guest-btn').onclick = finalizeLogin;
-          document.getElementById('close-welcome-modal') && (document.getElementById('close-welcome-modal').onclick = () => {
-             document.getElementById('welcome-modal').classList.add('hidden');
-             initApp();
-          });
-
-          function finalizeLogin() {
-            localStorage.setItem('hasVisited', 'true');
-            document.getElementById('welcome-modal').classList.add('hidden');
-            initApp();
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
-        // ────────────────────────────────────────────────
-        function initApp() {
-          if (myMap) return;
-
-          // Кнопки аккаунта
-          const accountBtn = document.getElementById('account-btn');
-          if(accountBtn) {
-              accountBtn.onclick = () => {
-                  // Если уже вошел - показываем выход, если нет - модалку
-                  const user = firebase.auth().currentUser;
-                  if(user) {
-                      // Можно открыть профиль, пока просто алерт для теста
-                      // alert(`Вы вошли как ${user.email}`);
-                  } else {
-                      document.getElementById('welcome-modal').classList.remove('hidden');
-                      showAuthTab('login');
-                  }
-              };
-          }
-
-          document.getElementById('signout-btn').onclick = async () => {
-            await firebase.auth().signOut();
-            updateAuthUI(null);
-          };
-
-          // Карта
-          ymaps.ready(() => {
-            myMap = new ymaps.Map('map', { center: SPB_CENTER, zoom: 10, controls: ['zoomControl'] });
-            
-            document.getElementById('close-info').onclick = () => {
-              document.getElementById('info').classList.remove('active');
-              selectedDistrict = null;
-            };
-
-            showLoader('Собираем данные...');
-            refreshData(true).then(() => hideLoader());
-            setInterval(refreshData, 300000);
-          });
-        }
-
-        // ────────────────────────────────────────────────
-        // AQI И КАРТА
-        // ────────────────────────────────────────────────
-        async function refreshData(force = false) {
-          if (!force && Date.now() - lastRefresh < 300000) return;
-          lastRefresh = Date.now();
-          currentData = await loadDistrictAQI();
-          updateMap();
-          updateStats();
-          updateLastUpdateTime();
-        }
-
-        async function loadDistrictAQI() {
-          try {
-            const res = await fetch('https://spbaqi.duckdns.org/api/v1/aqi/spb');
-            if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
-            const json = await res.json();
-            // Адаптация под структуру API
-            if(json.items) {
-                return json.items.map(item => ({
-                  id: item.id, district: item.name,
-                  aqi: item.data?.us_aqi || 0, 
-                  pm25: item.data?.pm2_5 || 0,
-                  pm10: item.data?.pm10 || 0, 
-                  no2: item.data?.nitrogen_dioxide || 0,
-                  o3: item.data?.ozone || 0, 
-                  so2: item.data?.sulphur_dioxide || 0,
-                  co: item.data?.carbon_monoxide || 0
-                }));
-            } else if (json instanceof Object) {
-                 // Если ответ плоский объект { "DistrictName": { "aqi_us": 20 ... } }
-                 return Object.keys(json).map(key => ({
-                     district: key,
-                     aqi: json[key].aqi_us || 0,
-                     pm25: json[key].pm2_5 || 0,
-                     pm10: json[key].pm10 || 0,
-                     no2: json[key].no2 || 0,
-                     o3: json[key].o3 || 0,
-                     so2: 0, co: 0
-                 }));
-            }
-            return [];
-          } catch (err) { 
-              console.error("Ошибка загрузки данных:", err); 
-              return []; 
-          }
-        }
-
-        function updateMap() {
-          if (!myMap) return;
-          myMap.geoObjects.removeAll();
-          currentData.forEach(item => {
-            const d = districts.find(x => x.name === item.district);
-            if (!d) return;
-            const q = getQuality(item.aqi);
-            const poly = new ymaps.Polygon([d.coords], {}, {
-              fillColor: q.color + '66', strokeColor: q.color, strokeWidth: 2, opacity: 0.75
-            });
-            poly.events.add('click', () => {
-              selectedDistrict = item.district; panelData = { ...item };
-              renderPanel(panelData);
-              document.getElementById('info').classList.add('active');
-            });
-            myMap.geoObjects.add(poly);
-          });
-        }
-
-        function getQuality(aqi) {
-          if (aqi <= 50)  return { color: '#00e400', text: 'Отличное',   status: 'Здоровое', rec: 'Можно гулять.' };
-          if (aqi <= 100) return { color: '#ffff00', text: 'Хорошее',    status: 'Норма', rec: 'Комфортно.' };
-          if (aqi <= 150) return { color: '#ff7e00', text: 'Умеренно',   status: 'Внимание', rec: 'Берегите себя.' };
-          if (aqi <= 200) return { color: '#ff0000', text: 'Плохо',      status: 'Опасно', rec: 'Не выходите.' };
-          return { color: '#8f3f97', text: 'Критично', status: 'Беда', rec: 'Дома!' };
-        }
-
-        function renderPanel(data) {
-          if (!data) return;
-          const q = getQuality(data.aqi);
-          document.getElementById('district-name').textContent = data.district;
-          document.getElementById('air-quality-value') && (document.getElementById('air-quality-value').textContent = data.aqi);
-          
-          const badge = document.getElementById('quality-badge');
-          badge.textContent = data.aqi;
-          badge.style.backgroundColor = q.color;
-          
-          document.getElementById('quality-status').textContent = `${q.text} — ${q.status}`;
-          document.getElementById('quality-description').textContent = q.rec;
-          
-          document.getElementById('pm25').textContent = `PM2.5: ${data.pm25}`;
-          document.getElementById('pm10').textContent = `PM10: ${data.pm10}`;
-          document.getElementById('no2').textContent = `NO₂: ${data.no2}`;
-          document.getElementById('o3').textContent = `O₃: ${data.o3}`;
-          document.getElementById('so2').textContent = `SO₂: ${data.so2}`;
-          document.getElementById('co').textContent = `CO: ${data.co}`;
-        }
-
-        function updateStats() {
-          // Можно добавить общую статистику в будущем
-        }
-
-        function updateLastUpdateTime() {
-          const now = new Date();
-          document.getElementById('last-update-time').textContent = 
-            `Обновлено: ${now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`;
-        }
-
-        // ────────────────────────────────────────────────
-        // UI АВТОРИЗАЦИИ
-        // ────────────────────────────────────────────────
-        function updateAuthUI(user) {
-          const accountBtn = document.getElementById('account-btn');
-          const userInfo = document.getElementById('user-info');
-          if (!accountBtn || !userInfo) return;
-
-          if (user) {
-            accountBtn.classList.add('hidden');
-            userInfo.classList.remove('hidden');
-            userInfo.style.display = 'flex';
-            document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-            const avatar = document.getElementById('user-avatar');
-            if (user.photoURL) {
-              avatar.innerHTML = `<img src="${user.photoURL}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
-            } else {
-              avatar.textContent = user.email[0].toUpperCase();
-              avatar.style.background = '#4F46E5';
-              avatar.style.color = 'white';
-              avatar.style.display = 'flex';
-              avatar.style.alignItems = 'center';
-              avatar.style.justifyContent = 'center';
-              avatar.style.fontWeight = 'bold';
-            }
-          } else {
-            accountBtn.classList.remove('hidden');
-            userInfo.classList.add('hidden');
-            userInfo.style.display = 'none';
-          }
-        }
-
-        // ────────────────────────────────────────────────
-        // ЗАПУСК
-        // ────────────────────────────────────────────────
-        setupWelcomeButtons();
-        checkFirstVisit();
-    </script>
+    <!-- Подключение скрипта -->
+    <script src="script.js"></script>
 </body>
 </html>
